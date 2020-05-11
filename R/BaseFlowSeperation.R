@@ -61,6 +61,28 @@ BaseFlowSeperation<-function(streamflow, bf_method, k=0.925, c=quantile(streamfl
     qflow<-streamflow
     f <- data.frame(qflow,bt,qft)
     return(f)
+  }else if (bf_method=='Eckhardt'){
+    lg <- function(x)c(NA, x[1:(length(x)-1)])
+    a<-streamflow
+    cc<-data.frame(a)
+    cc$b<-lg(a)
+    alpha<-lm(cc$a~0+cc$b)$coefficients
+
+    mn<-streamflow
+    mn_1<-vector(length = length(mn))
+    mn_1[length(mn)]<-if(streamflow[length(mn)]<quantile(streamflow,0.25)) streamflow[length(mn)] else mean(streamflow)/1.5
+
+    for(i in length(mn):2){
+      if(mn_1[i]>mn[i]){
+        mn_1[i]<-mn[i]
+      }
+      mn_1[i-1]<-mn_1[i]/alpha
+    }
+    qflow<-streamflow
+    bt<-mn_1
+    qft<-qflow-bt
+    f <- data.frame(qflow,bt,qft)
+    return(f)
   }
 }
 
