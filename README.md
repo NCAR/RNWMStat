@@ -10,7 +10,7 @@ just like R, which should help make them accessible and popular.
 
 Installation of RNWMStat package (not on [CRAN](http://cran.r-project.org/)) can be achieved by using devtools package (on CRAN), so devtools should be installed
 first. The following is done for the initial install or to update the
-rwrfhydro package.
+RNWMStat package.
 
 ``` r
 install.packages("devtools")
