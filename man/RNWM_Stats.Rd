@@ -18,7 +18,7 @@ nwm_validation_stats<-RNWM_Stats(dataFrame,bf_method='Eckhardt',qlimit=0,cor_met
 \arguments{
 \item{dataFrame}{A dataframe of observation and model streamflow. Use column names 'mod' for model and 'obs' for observation}
 
-\item{bf_method}{Baseflow seperation methods (e.g., "Duncan" or "Lyne-Nathan" or "Eckhardt")}
+\item{bf_method}{Baseflow separation methods (e.g., "Duncan" or "Lyne-Nathan" or "Eckhardt")}
 \item{qlimit}{Minimum quickflow threshold. The StormEvents() function only consider events higher than this threshold while counting events}
 
 \item{cor_method}{a character string indicating which correlation coefficient (or covariance) is to be computed. One of "pearson" (default), "kendall", or "spearman": can be abbreviated.}

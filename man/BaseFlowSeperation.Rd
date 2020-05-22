@@ -1,8 +1,8 @@
-\name{BaseFlowSeperation}
-\alias{BaseFlowSeperation}
-\title{Hydrograph Baseflow Seperation}
+\name{BaseFlowseparation}
+\alias{BaseFlowseparation}
+\title{Hydrograph Baseflow separation}
 \usage{
-BaseFlowSeperation(streamflow, bf_method, k=0.93, c=quantile(streamflow,probs = 0.25, na.rm=T), filter_parameter=0.925, passes=1))
+BaseFlowseparation(streamflow, bf_method, k=0.93, c=quantile(streamflow,probs = 0.25, na.rm=T), filter_parameter=0.925, passes=1))
 }
 \description{
 Estimates baseflow and quickflow from daily streamflow time series using Duncan (2019) method, Lyne and Hollick (1979)-Nathan and McMahon (1990) method, and Eckhardt (2005,2008) method.
@@ -11,7 +11,7 @@ Estimates baseflow and quickflow from daily streamflow time series using Duncan 
 data("USGS_Streamflow")
 
 #bf_method = 'Duncan'
-Baseflow<-BaseFlowSeperation(streamflow, bf_method='Duncan', k=0.93, c=quantile(streamflow,probs = 0.25, na.rm=T), filter_parameter=0.925, passes=1)
+Baseflow<-BaseFlowseparation(streamflow, bf_method='Duncan', k=0.93, c=quantile(streamflow,probs = 0.25, na.rm=T), filter_parameter=0.925, passes=1)
 
 # Plotting
 plot(Baseflow$qflow,type = 'l')# Streamflow
@@ -19,7 +19,7 @@ lines(Baseflow$bt,col='red') # Baseflow
 lines(Baseflow$qft,col='blue') # Quickflow
 
 #bf_method = 'Lyne-Nathan'
-Baseflow<-BaseFlowSeperation(streamflow, bf_method='Lyne-Nathan', k=0.93, c=quantile(streamflow,probs = 0.25, na.rm=T), filter_parameter=0.925, passes=1)
+Baseflow<-BaseFlowseparation(streamflow, bf_method='Lyne-Nathan', k=0.93, c=quantile(streamflow,probs = 0.25, na.rm=T), filter_parameter=0.925, passes=1)
 
 # Plotting
 plot(Baseflow$qflow,type = 'l')# Streamflow
@@ -27,7 +27,7 @@ lines(Baseflow$bt,col='red') # Baseflow
 lines(Baseflow$qft,col='blue') # Quickflow
 
 #bf_method = 'Eckhardt'
-Baseflow<-BaseFlowSeperation(streamflow, bf_method='Eckhardt', k=0.93, c=quantile(streamflow,probs = 0.25, na.rm=T), filter_parameter=0.925, passes=1)
+Baseflow<-BaseFlowseparation(streamflow, bf_method='Eckhardt', k=0.93, c=quantile(streamflow,probs = 0.25, na.rm=T), filter_parameter=0.925, passes=1)
 
 # Plotting
 plot(Baseflow$qflow,type = 'l')# Streamflow
@@ -38,7 +38,7 @@ lines(Baseflow$qft,col='blue') # Quickflow
 \arguments{
 \item{streamflow}{Daily streamflow time series}
 
-\item{bf_method}{Baseflow seperation methods (e.g., "Duncan" or "Lyne-Nathan" or "Eckhardt") }
+\item{bf_method}{Baseflow separation methods (e.g., "Duncan" or "Lyne-Nathan" or "Eckhardt") }
 
 \item{k}{Recession constant. Only for bf_method='Duncan'. Default value is 0.925 based on Nathan and McMahon (1990) }
 
