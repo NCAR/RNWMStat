@@ -15,6 +15,7 @@ RNWMStat package.
 ``` r
 install.packages("devtools")
 devtools::install_github("NCAR/RNWMStat")
+library(RNWMStat)
 ```
 
 # Developing and bug reports
