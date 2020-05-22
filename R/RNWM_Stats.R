@@ -36,14 +36,12 @@ RNWM_Stats<-function(dataFrame,bf_method='Eckhardt',qlimit=0,cor_use='everything
     # Flow duration curve (FDC)
     #------------------------------------#
 
-    dataFrame <- CalcFdc(dataFrame, colName='mod')              #Calculate flow exceedance for modeled
-
-    flowSplineMod <- CalcFdcSpline(dataFrame, colName = 'mod')  #Calculate the spline for modeled
-
-    Q10.50_Mod <- Q10_50(flowSplineMod)                         #10% of the time' for the observed and modeled 
+    mod_Fdc        <- CalcFdc(dataFrame, colName='mod')              #Calculate flow exceedance for modeled
+    mod_flowSpline <- CalcFdcSpline(dataFrame, colName = 'mod')      #Calculate the spline for modeled
+    mod_Q10.50     <- Q10_50(mod_flowSpline)                        #10% of the time' for the observed and modeled
 
     #Calculate the slope of the center of FDC for the observed and modeled data (Boscarello paper)
-    slopeFDC_Mod <- Calc_FDC_Slope(flowSplineMod)
+    mod_slopeFDC <- Calc_FDC_Slope(flowSplineMod)
 
   #------------------------------------#
   # Obs calculations
@@ -76,14 +74,12 @@ RNWM_Stats<-function(dataFrame,bf_method='Eckhardt',qlimit=0,cor_use='everything
     # Flow duration curve (FDC)
     #------------------------------------#
 
-    dataFrame <- CalcFdc(dataFrame, colName='obs')              #Calculate flow exceedance for observed
-  
-    flowSplineObs <- CalcFdcSpline(dataFrame, colName = 'obs')  #Calculate the spline for observed
-  
-    Q10.50_Obs <- Q10_50(flowSplineObs)                         #Calculate the 'annual mean of the flow exceeded
-  
+    obs_Fdc        <- CalcFdc(dataFrame, colName='obs')              #Calculate flow exceedance for observed
+    obs_flowSpline <- CalcFdcSpline(dataFrame, colName = 'obs')      #Calculate the spline for observed
+    obs_Q10.50     <- Q10_50(obs_flowSpline)                        #Calculate the 'annual mean of the flow exceeded
+
     #Calculate the slope of the center of FDC for the observed and modeled data (Boscarello paper)
-    slopeFDC_Obs <- Calc_FDC_Slope(flowSplineObs)    
+    obs_slopeFDC <- Calc_FDC_Slope(flowSplineObs)
 
   #------------------------------------#
   # Metrics requiring model and obs
@@ -141,24 +137,32 @@ RNWM_Stats<-function(dataFrame,bf_method='Eckhardt',qlimit=0,cor_use='everything
   #------------------------------------#
 
   Stat_obj<-list()
-  Stat_obj$Obs_BaseFlow<-obs_BF$bt
-  Stat_obj$Obs_QuickFlow<-obs_BF$qft
+  Stat_obj$Obs_BaseFlow     <-obs_BF$bt
+  Stat_obj$Obs_QuickFlow    <-obs_BF$qft
   Stat_obj$Obs_BaseFlowIndex<-obs_BFI
-  Stat_obj$Obs_nStormEvents<-obs_nev$nEvents
+  Stat_obj$Obs_nStormEvents <-obs_nev$nEvents
+  Stat_obj$Obs_Fdc          <-obs_Fdc
+  Stat_obj$Obs_flowSpline   <-obs_flowSpline
+  Stat_obj$Obs_Q10.50       <-obs_Q10.50
+  Stat_obj$Obs_slopeFDC     <-obs_slopeFDC
 
-  Stat_obj$Mod_BaseFlow<-mod_BF$bt
-  Stat_obj$Mod_QuickFlow<-mod_BF$qft
+  Stat_obj$Mod_BaseFlow     <-mod_BF$bt
+  Stat_obj$Mod_QuickFlow    <-mod_BF$qft
   Stat_obj$Mod_BaseFlowIndex<-mod_BFI
-  Stat_obj$Mod_nStormEvents<-mod_nev$nEvents
+  Stat_obj$Mod_nStormEvents <-mod_nev$nEvents
+  Stat_obj$Mod_Fdc          <-obs_Fdc
+  Stat_obj$Mod_flowSpline   <-obs_flowSpline
+  Stat_obj$Mod_Q10.50       <-obs_Q10.50
+  Stat_obj$Mod_slopeFDC     <-obs_slopeFDC
 
   Stat_obj$RMSE  <-RMSE
-  Stat_obj$PBIAS <- PBIAS
-  Stat_obj$NRMSE <- NRMSE
-  Stat_obj$KGE <-KGE
-  Stat_obj$R2  <- R2
-  Stat_obj$COR_Pearson<-COR_Pearson
+  Stat_obj$PBIAS <-PBIAS
+  Stat_obj$NRMSE <-NRMSE
+  Stat_obj$KGE   <-KGE
+  Stat_obj$R2    <-R2
+  Stat_obj$COR_Pearson <-COR_Pearson
   Stat_obj$COR_Spearman<-COR_Spearman
-  Stat_obj$NSE <- NSE
+  Stat_obj$NSE   <-NSE
 
   return(Stat_obj)
 }
