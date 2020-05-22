@@ -12,6 +12,7 @@ RNWM_Stats<-function(dataFrame,bf_method='Eckhardt',qlimit=0,cor_use='everything
     #------------------------------------#
     # Calculate baseflow (mod_BF)
     #------------------------------------#
+
     mod_BF<-BaseFlowSeparation(dataFrame$mod,
                                        bf_method=bf_method,
                                        k=0.93,
@@ -19,20 +20,30 @@ RNWM_Stats<-function(dataFrame,bf_method='Eckhardt',qlimit=0,cor_use='everything
                                        filter_parameter=0.925,
                                        passes=1)
 
-
-
     #------------------------------------#
     # Calculate baseflow index (mod_BFI)
     #------------------------------------#
-    mod_BFI<-BaseFlowIndex(mod_BF$qflow, mod_BF$bt, na.rm=T)
 
+    mod_BFI<-BaseFlowIndex(mod_BF$qflow, mod_BF$bt, na.rm=T)
 
     #------------------------------------#
     # Calculate events (mod_nev)
     #------------------------------------#
+
     mod_nev<-StormEvents(mod_BF$qft,qlimit = qlimit)
 
+    #------------------------------------#
+    # Flow duration curve (FDC)
+    #------------------------------------#
 
+    dataFrame <- CalcFdc(dataFrame, colName='mod')              #Calculate flow exceedance for modeled
+
+    flowSplineMod <- CalcFdcSpline(dataFrame, colName = 'mod')  #Calculate the spline for modeled
+
+    Q10.50_Mod <- Q10_50(flowSplineMod)                         #10% of the time' for the observed and modeled 
+
+    #Calculate the slope of the center of FDC for the observed and modeled data (Boscarello paper)
+    slopeFDC_Mod <- Calc_FDC_Slope(flowSplineMod)
 
   #------------------------------------#
   # Obs calculations
@@ -41,6 +52,7 @@ RNWM_Stats<-function(dataFrame,bf_method='Eckhardt',qlimit=0,cor_use='everything
     #------------------------------------#
     # Calculate baseflow (obs_BF)
     #------------------------------------#
+
     obs_BF<-BaseFlowSeparation(dataFrame$obs,
                                        bf_method=bf_method,
                                        k=0.93,
@@ -60,27 +72,23 @@ RNWM_Stats<-function(dataFrame,bf_method='Eckhardt',qlimit=0,cor_use='everything
 
     obs_nev<-StormEvents(obs_BF$qft,qlimit = qlimit)
 
-    #-------------------------------------#
+    #------------------------------------#
+    # Flow duration curve (FDC)
+    #------------------------------------#
 
+    dataFrame <- CalcFdc(dataFrame, colName='obs')              #Calculate flow exceedance for observed
+  
+    flowSplineObs <- CalcFdcSpline(dataFrame, colName = 'obs')  #Calculate the spline for observed
+  
+    Q10.50_Obs <- Q10_50(flowSplineObs)                         #Calculate the 'annual mean of the flow exceeded
+  
+    #Calculate the slope of the center of FDC for the observed and modeled data (Boscarello paper)
+    slopeFDC_Obs <- Calc_FDC_Slope(flowSplineObs)    
 
   #------------------------------------#
   # Metrics requiring model and obs
   #------------------------------------#
 
-  
-  dataFrame <- CalcFdc(dataFrame, colName='obs')              #Calculate flow exceedance for observed
-  dataFrame <- CalcFdc(dataFrame, colName='mod')              #Calculate flow exceedance for modeled
-  
-  flowSplineObs <- CalcFdcSpline(dataFrame, colName = 'obs')  #Calculate the spline for observed
-  flowSplineMod <- CalcFdcSpline(dataFrame, colName = 'mod')  #Calculate the spline for modeled
-  
-  Q10.50_Obs <- Q10_50(flowSplineObs)                         #Calculate the 'annual mean of the flow exceeded
-  Q10.50_Mod <- Q10_50(flowSplineMod)                         #10% of the time' for the observed and modeled 
-  
-  #Calculate the slope of the center of FDC for the observed and modeled data (Boscarello paper)
-  slopeFDC_Obs <- Calc_FDC_Slope(flowSplineObs)    
-  slopeFDC_Mod <- Calc_FDC_Slope(flowSplineMod)
-  
     #------------------------------------#
     # Calculate root mean square error (RMSE)
     #------------------------------------#
