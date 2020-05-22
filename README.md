@@ -21,7 +21,7 @@ library(RNWMStat)
 # Developing and bug reports
 
 Bugs are to be reported
-[here](https://github.com/NCAR/RNWMStats/issues). If you want to help
+[here](https://github.com/NCAR/RNWMStat/issues). If you want to help
 solve bugs and fixes into the code, please continue reading about
 developing.
 
