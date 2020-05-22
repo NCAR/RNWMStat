@@ -1,4 +1,4 @@
-BaseFlowSeperation<-function(streamflow, bf_method, k=0.925, c=quantile(streamflow,probs = 0.25, na.rm=T), filter_parameter=0.925, passes=1){
+BaseFlowSeparation<-function(streamflow, bf_method, k=0.925, c=quantile(streamflow,probs = 0.25, na.rm=T), filter_parameter=0.925, passes=1){
   if(bf_method=='Duncan'){
     mn<-streamflow
     qflow<-mn
