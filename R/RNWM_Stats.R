@@ -27,7 +27,17 @@ RNWM_Stats<-function(dataFrame,bf_method='Eckhardt',qlimit=0,na.rm=T){
 
   obs_nev<-StormEvents(obs_BF$qft,qlimit = qlimit)
 
-
+  #-------------------------------------#
+  
+  dataFrame <- CalcFdc(dataFrame, colName='obs')              #Calculate flow exceedance for observed
+  dataFrame <- CalcFdc(dataFrame, colName='mod')              #Calculate flow exceedance for modeled
+  
+  flowSplineObs <- CalcFdcSpline(dataFrame, colName = 'obs')  #Calculate the spline for observed
+  flowSplineMod <- CalcFdcSpline(dataFrame, colName = 'mod')  #Calculate the spline for modeled
+  
+  Q10.50_Obs <- flowSplineObs(0.1)/flowSplineObs(0.5)         #Calculate the 'annual mean of the flow exceeded
+  Q10.50_Mod <- flowSplineMod(0.1)/flowSplineMod(0.5)         #10% of the time' for the observed and modeled 
+  
   #-------------------------------------#
   RMSE <-RMSE(dataFrame$mod,dataFrame$obs,na.rm=T)
   PBIAS<-PBias(dataFrame$mod,dataFrame$obs,na.rm=T)
