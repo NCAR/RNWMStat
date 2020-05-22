@@ -4,7 +4,7 @@ RNWM_Stats<-function(dataFrame,bf_method='Eckhardt',qlimit=0,cor_method='pearson
 
   #Assume it doesn't have missing data for now
 
-  mod_BF<-BaseFlowSeperation(dataFrame$mod,
+  mod_BF<-BaseFlowSeparation(dataFrame$mod,
                                        bf_method=bf_method,
                                        k=0.93,
                                        c=quantile(streamflow,probs = 0.25, na.rm=T),
@@ -16,7 +16,7 @@ RNWM_Stats<-function(dataFrame,bf_method='Eckhardt',qlimit=0,cor_method='pearson
 
   #------------------------------------#
 
-  obs_BF<-BaseFlowSeperation(dataFrame$obs,
+  obs_BF<-BaseFlowSeparation(dataFrame$obs,
                                        bf_method=bf_method,
                                        k=0.93,
                                        c=quantile(streamflow,probs = 0.25, na.rm=T),
