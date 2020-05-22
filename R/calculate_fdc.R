@@ -30,7 +30,7 @@
 CalcFdc <- function(flowDF, colName = 'vals') {
     flowData <- rank(-flowDF[, colName], na.last='keep')
     flowDF[, paste0(colName, '.fdc')] <- NA
-    flowDF[, paste0(colName, '.fdc')] <- flowData/sum(!is.na(flowDF[, colName]))+1)
+    flowDF[, paste0(colName, '.fdc')] <- flowData/(sum(!is.na(flowDF[, colName]))+1)
     
     flowDF
 }
