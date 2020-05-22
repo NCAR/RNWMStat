@@ -1,4 +1,4 @@
-RNWM_Stats<-function(dataFrame,bf_method='Eckhardt',qlimit=0,na.rm=T){
+RNWM_Stats<-function(dataFrame,bf_method='Eckhardt',qlimit=0,cor_method='pearson',cor_use='everything',na.rm=T){
   # This is the driver file or main Rscript
   # Make sure that the dataFrame contains model (mod) and observations (obs)
 
@@ -29,8 +29,13 @@ RNWM_Stats<-function(dataFrame,bf_method='Eckhardt',qlimit=0,na.rm=T){
 
 
   #-------------------------------------#
-  RMSE <-RMSE(dataFrame$mod,dataFrame$obs,na.rm=T)
-  PBIAS<-PBias(dataFrame$mod,dataFrame$obs,na.rm=T)
+  RMSE  <-RMSE(dataFrame$mod,dataFrame$obs,na.rm=T)
+  NRMSE <-PBias(dataFrame$mod,dataFrame$obs,na.rm=T)
+  PBIAS <-PBias(dataFrame$mod,dataFrame$obs,na.rm=T)
+  KGE   <-KGE(dataFrame$mod,dataFrame$obs, na.rm=TRUE, s.r=1, s.alpha=1, s.beta=1)
+  R2    <-RSquared(dataFrame$mod,dataFrame$obs)
+  NSE   <-NSE(dataFrame$mod,dataFrame$obs, nullModel=mean(dataFrame$obs, na.rm=na.rm), na.rm=TRUE)
+  CORRELATION<-cor(dataFrame$mod,dataFrame$obs,method = cor_method,use=cor_use)
 
   Stat_obj<-list()
   Stat_obj$Obs_BaseFlow<-obs_BF$bt
@@ -45,6 +50,12 @@ RNWM_Stats<-function(dataFrame,bf_method='Eckhardt',qlimit=0,na.rm=T){
 
   Stat_obj$RMSE  <-RMSE
   Stat_obj$PBIAS <- PBIAS
+  Stat_obj$NRMSE <- NRMSE
+  Stat_obj$KGE <-KGE
+  Stat_obj$R2  <- R2
+  Stat_obj$CORRELATION<-CORRELATION
+  Stat_obj$NSE <- NSE
+
   return(Stat_obj)
 }
 
