@@ -12,4 +12,5 @@
 
 Q10_50 <- function (splineFlow, na.rm=TRUE) {
     Q10.50 <- splineFlow(0.1)/splineFlow(0.5)
+    return(Q10.50)
 }
