@@ -67,6 +67,20 @@ RNWM_Stats<-function(dataFrame,bf_method='Eckhardt',qlimit=0,cor_use='everything
   # Metrics requiring model and obs
   #------------------------------------#
 
+  
+  dataFrame <- CalcFdc(dataFrame, colName='obs')              #Calculate flow exceedance for observed
+  dataFrame <- CalcFdc(dataFrame, colName='mod')              #Calculate flow exceedance for modeled
+  
+  flowSplineObs <- CalcFdcSpline(dataFrame, colName = 'obs')  #Calculate the spline for observed
+  flowSplineMod <- CalcFdcSpline(dataFrame, colName = 'mod')  #Calculate the spline for modeled
+  
+  Q10.50_Obs <- Q10_50(flowSplineObs)                         #Calculate the 'annual mean of the flow exceeded
+  Q10.50_Mod <- Q10_50(flowSplineMod)                         #10% of the time' for the observed and modeled 
+  
+  #Calculate the slope of the center of FDC for the observed and modeled data (Boscarello paper)
+  slopeFDC_Obs <- Calc_FDC_Slope(flowSplineObs)    
+  slopeFDC_Mod <- Calc_FDC_Slope(flowSplineMod)
+  
     #------------------------------------#
     # Calculate root mean square error (RMSE)
     #------------------------------------#
