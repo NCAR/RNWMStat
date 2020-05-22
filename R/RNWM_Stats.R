@@ -76,6 +76,36 @@ RNWM_Stats<-function(dataFrame,bf_method='Eckhardt',qlimit=0,na.rm=T){
 
   PBIAS<-PBias(dataFrame$mod,dataFrame$obs,na.rm=T)
 
+    #------------------------------------#
+    # Calculate NSE (NSE)
+    #------------------------------------#
+    
+  ### function to be added here
+
+    #------------------------------------#
+    # Calculate KGE (KGE)
+    #------------------------------------#
+
+  ### function to be added here
+
+    #------------------------------------#
+    # Calculate correlation (R2)
+    #------------------------------------#
+
+  ### function to be added here
+
+    #------------------------------------#
+    # Calculate Pearson R (Pearson_R)
+    #------------------------------------#
+
+  ### function to be added here
+
+    #------------------------------------#
+    # Calculate Spearman R (Spearman_R)
+    #------------------------------------#
+
+  ### function to be added here
+
   #------------------------------------#
   # Populate statistics object
   #------------------------------------#
