@@ -35,12 +35,12 @@ RNWM_Stats<-function(dataFrame,bf_method='Eckhardt',qlimit=0,na.rm=T){
   flowSplineObs <- CalcFdcSpline(dataFrame, colName = 'obs')  #Calculate the spline for observed
   flowSplineMod <- CalcFdcSpline(dataFrame, colName = 'mod')  #Calculate the spline for modeled
   
-  Q10.50_Obs <- flowSplineObs(0.1)/flowSplineObs(0.5)         #Calculate the 'annual mean of the flow exceeded
-  Q10.50_Mod <- flowSplineMod(0.1)/flowSplineMod(0.5)         #10% of the time' for the observed and modeled 
+  Q10.50_Obs <- Q10_50(flowSplineObs)                         #Calculate the 'annual mean of the flow exceeded
+  Q10.50_Mod <- Q10_50(flowSplineMod)                         #10% of the time' for the observed and modeled 
   
   #Calculate the slope of the center of FDC for the observed and modeled data (Boscarello paper)
-  slopeFDC_Obs <- (log(flowSplineObs(0.33)) - log(flowSplineObs(0.66))) / (0.66 - 0.33)     
-  slopeFDC_Mod <- (log(flowSplineMod(0.33)) - log(flowSplineMod(0.66))) / (0.66 - 0.33)
+  slopeFDC_Obs <- Calc_FDC_Slope(flowSplineObs)    
+  slopeFDC_Mod <- Calc_FDC_Slope(flowSplineMod)
   
   #-------------------------------------#
   RMSE <-RMSE(dataFrame$mod,dataFrame$obs,na.rm=T)
