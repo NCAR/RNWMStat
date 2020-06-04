@@ -21,7 +21,7 @@ RunOffRatio<-function(dfRR,WS_area){
                            sum_qobs = sum(obs_mm,na.rm=T),
                            obs_runoff_ratio = sum(obs_mm,na.rm=T)/sum(PCP,na.rm=T),
                            mod_runoff_ratio = sum(mod_mm,na.rm=T)/sum(PCP,na.rm=T))
-  SFdb<-ungroup(sb)
+  SFdb<-dplyr::ungroup(sb)
   return(SFdb)
 }
 
