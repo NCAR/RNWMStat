@@ -1,5 +1,5 @@
 #Calculate flow duration curve.
-#Adapted from rwrfhydro/R/calculate_fdc.R 
+#Adapted from rwrfhydro/R/calculate_fdc.R
 #(https://github.com/NCAR/rwrfhydro/blob/master/R/calculate_fdc.R)
 #
 #
@@ -7,7 +7,7 @@
 # 1. CalcFdc
 #      This function calculates the flow exceedance probabilities and
 #      adds them to the dataframe.
-#      REQUIRED INPUTS: 
+#      REQUIRED INPUTS:
 #           1. Dataframe with streamflow (dataframe)
 #      OPTIONAL INPUTS:
 #           1. Column name of the column containing streamflow (string)
@@ -16,7 +16,7 @@
 # 2. CalcFdcSpline
 #      This function returns a spline function that can be used to
 #      estimated flow for a specified exceedance threshold.
-#      REQUIRED INPUTS: 
+#      REQUIRED INPUTS:
 #           1. Dataframe with streamflow (dataframe)
 #      OPTIONAL INPUTS:
 #           1. Column name of the column containing streamflow (string)
@@ -27,11 +27,11 @@
 
 #--Calculate the flow exceedance probabilities for a single location--
 
-CalcFdc <- function(flowDF, colName = 'vals') {
+CalcFdc <- function(flowDF, colName) {
     flowData <- rank(-flowDF[, colName], na.last='keep')
     flowDF[, paste0(colName, '.fdc')] <- NA
     flowDF[, paste0(colName, '.fdc')] <- flowData/(sum(!is.na(flowDF[, colName]))+1)
-    
+
     flowDF
 }
 
@@ -45,7 +45,7 @@ CalcFdc <- function(flowDF, colName = 'vals') {
 # flowSpline <- CalcFdcSpline(flowDataFrame, 'flowColumnName')
 # flow20PcntExceedance <- flowSpline(0.2)
 
-CalcFdcSpline <- function(flowDF, colName = 'vals') {
+CalcFdcSpline <- function(flowDF, colName) {
     flowSpline <- splinefun(flowDF[, paste0(colName, '.fdc')], flowDF[, colName],
                                 method = 'natural')
     flowSpline

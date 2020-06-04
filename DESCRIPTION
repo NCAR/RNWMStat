@@ -11,5 +11,9 @@ LazyData: true
 Depends:
     R (>= 3.6.0)
 Imports:
-    EcoHydRology(>= 0.4.12.1)
+    EcoHydRology(>= 0.4.12.1),
+    plyr(>= 1.0.0),
+    pspline(>= 1.0-18),
+    ggplot2(>= 3.3.1),
+    data.table(>= 1.12.8),
    

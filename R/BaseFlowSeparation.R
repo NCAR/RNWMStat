@@ -26,7 +26,10 @@ BaseFlowSeparation<-function(streamflow, bf_method, k=0.925, c=quantile(streamfl
       for (i in (Ends[j]+AddToStart[j]):Ends[j+1]){
         if ((filter_parameter*bt[i-AddToStart[j]]+((1-filter_parameter)/2)*(btP[i]+btP[i-AddToStart[j]]))>btP[i]){
           bt[i]<-btP[i]
-        } else bt[i]<-filter_parameter*bt[i-AddToStart[j]]+((1-filter_parameter)/2)*(btP[i]+btP[i-AddToStart[j]])
+        } else {
+          bt[i]<-filter_parameter*bt[i-AddToStart[j]]+((1-filter_parameter)/2)*(btP[i]+btP[i-AddToStart[j]])
+        }
+        if(bt[i]<0)bt[i]<-0
         qft[i]<-streamflow[i]-bt[i]
       }
       if (j<passes){
@@ -49,7 +52,10 @@ BaseFlowSeparation<-function(streamflow, bf_method, k=0.925, c=quantile(streamfl
       for (i in (Ends[j]+AddToStart[j]):Ends[j+1]){
         if ((filter_parameter*bt[i-AddToStart[j]]+((1-filter_parameter)/2)*(btP[i]+btP[i-AddToStart[j]]))>btP[i]){
           bt[i]<-btP[i]
-        } else bt[i]<-filter_parameter*bt[i-AddToStart[j]]+((1-filter_parameter)/2)*(btP[i]+btP[i-AddToStart[j]])
+        } else {
+          bt[i]<-filter_parameter*bt[i-AddToStart[j]]+((1-filter_parameter)/2)*(btP[i]+btP[i-AddToStart[j]])
+        }
+        if(bt[i]<0)bt[i]<-0
         qft[i]<-streamflow[i]-bt[i]
       }
       if (j<passes){
@@ -75,6 +81,7 @@ BaseFlowSeparation<-function(streamflow, bf_method, k=0.925, c=quantile(streamfl
     for(i in length(mn):2){
       if(mn_1[i]>mn[i]){
         mn_1[i]<-mn[i]
+        if(mn_1[i]<0)mn_1[i]<-0
       }
       mn_1[i-1]<-mn_1[i]/alpha
     }

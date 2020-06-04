@@ -1,8 +1,8 @@
-\name{BaseFlowseparation}
-\alias{BaseFlowseparation}
+\name{BaseFlowSeparation}
+\alias{BaseFlowSeparation}
 \title{Hydrograph Baseflow separation}
 \usage{
-BaseFlowseparation(streamflow, bf_method, k=0.93, c=quantile(streamflow,probs = 0.25, na.rm=T), filter_parameter=0.925, passes=1))
+BaseFlowSeparation(streamflow, bf_method, k=0.93, c=quantile(streamflow,probs = 0.25, na.rm=T), filter_parameter=0.925, passes=1))
 }
 \description{
 Estimates baseflow and quickflow from daily streamflow time series using Duncan (2019) method, Lyne and Hollick (1979)-Nathan and McMahon (1990) method, and Eckhardt (2005,2008) method.
@@ -11,7 +11,7 @@ Estimates baseflow and quickflow from daily streamflow time series using Duncan 
 data("USGS_Streamflow")
 
 #bf_method = 'Duncan'
-Baseflow<-BaseFlowseparation(streamflow, bf_method='Duncan', k=0.93, c=quantile(streamflow,probs = 0.25, na.rm=T), filter_parameter=0.925, passes=1)
+Baseflow<-BaseFlowSeparation(streamflow, bf_method='Duncan', k=0.93, c=quantile(streamflow,probs = 0.25, na.rm=T), filter_parameter=0.925, passes=1)
 
 # Plotting
 plot(Baseflow$qflow,type = 'l')# Streamflow
@@ -19,7 +19,7 @@ lines(Baseflow$bt,col='red') # Baseflow
 lines(Baseflow$qft,col='blue') # Quickflow
 
 #bf_method = 'Lyne-Nathan'
-Baseflow<-BaseFlowseparation(streamflow, bf_method='Lyne-Nathan', k=0.93, c=quantile(streamflow,probs = 0.25, na.rm=T), filter_parameter=0.925, passes=1)
+Baseflow<-BaseFlowSeparation(streamflow, bf_method='Lyne-Nathan', k=0.93, c=quantile(streamflow,probs = 0.25, na.rm=T), filter_parameter=0.925, passes=1)
 
 # Plotting
 plot(Baseflow$qflow,type = 'l')# Streamflow
@@ -27,7 +27,7 @@ lines(Baseflow$bt,col='red') # Baseflow
 lines(Baseflow$qft,col='blue') # Quickflow
 
 #bf_method = 'Eckhardt'
-Baseflow<-BaseFlowseparation(streamflow, bf_method='Eckhardt', k=0.93, c=quantile(streamflow,probs = 0.25, na.rm=T), filter_parameter=0.925, passes=1)
+Baseflow<-BaseFlowSeparation(streamflow, bf_method='Eckhardt', k=0.93, c=quantile(streamflow,probs = 0.25, na.rm=T), filter_parameter=0.925, passes=1)
 
 # Plotting
 plot(Baseflow$qflow,type = 'l')# Streamflow
