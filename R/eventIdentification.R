@@ -5,7 +5,7 @@ eventIdentification <- function(data,nwinSpan=36,
   nwinShift=12,minInterval=6,minLengthData=6) {
 
 ########### definition of parameters #####################
-# data: data frame for streamflow, 1st column is time in POSIXct format, 
+# data: data.table for streamflow, 1st column is time in POSIXct format, 
 #       2nd column is the flow values
 # nwinSpan: window size (in hours) for smoothing
 # nwinShift: size of window (nwinShift*2+1) around smoothed peak to identify actual peak,
