@@ -1,18 +1,12 @@
 # 
-eventIdentification <- function(data,tag,nwinSpan=36,plot=TRUE,
+eventIdentification <- function(data,nwinSpan=36,
   probPeak=0.9,probLowflow=0.5,probRange=0.3,
   minEventDuration=6,maxRiseDuration=120,maxRecessionDuration=240,
   nwinShift=12,minInterval=6,minLengthData=6) {
 
-library(dplyr)
-library(data.table)
-library(ggplot2)
-library(pspline)
-
 ########### definition of parameters #####################
 # data: data frame for streamflow, 1st column is time in POSIXct format, 
 #       2nd column is the flow values
-# tag: string to name the data set, e.g., "14400000_mod","14400000_obs"
 # nwinSpan: window size (in hours) for smoothing
 # nwinShift: size of window (nwinShift*2+1) around smoothed peak to identify actual peak,
 #       as there often exists a shift between smooth and actual peaks (hours)
@@ -63,10 +57,10 @@ getEvents <- function(tPeaks,df1,thresh) {
 
 iLowflows <- which(df1$value < thresh)
 iPeaks <- match(tPeaks,df1$time)
-iStarts0 <- sapply(iPeaks, function(x) max(iLowflows[iLowflows<x]))
-iEnds0 <- sapply(iPeaks, function(x) min(iLowflows[iLowflows>x]))
-iStarts0[is.infinite(iStarts0) | is.na(iEnds0)] <- 1
-iEnds0[is.infinite(iEnds0) | is.na(iEnds0)] <- nrow(df1)
+iStarts0 <- sapply(iPeaks, function(x) max(iLowflows[iLowflows<x]-1))
+iEnds0 <- sapply(iPeaks, function(x) min(iLowflows[iLowflows>x]+1))
+iStarts0[is.infinite(iStarts0) | is.na(iEnds0) | iStarts0<1] <- 1
+iEnds0[is.infinite(iEnds0) | is.na(iEnds0) | iEnds0>nrow(df1)] <- nrow(df1)
 
 n1 <- length(iPeaks)
 iStarts1 <- iEnds1 <- rep(NA,n1)
@@ -86,7 +80,7 @@ iEnds <- sapply(1:n1, function(x) min(iEnds0[x],iEnds1[x]))
 iPeaks <- sapply(1:length(iPeaks),function(x) which.max(df1$value[iStarts[x]:iEnds[x]])+iStarts[x]-1)
 
 # events (start time, peak time, end time)
-eventDt <- data.table(start=df1$time[iStarts],
+eventDt <- data.table::data.table(start=df1$time[iStarts],
                       peak=df1$time[iPeaks],
                       end=df1$time[iEnds])
 
@@ -94,6 +88,42 @@ eventDt <- data.table(start=df1$time[iStarts],
 eventDt <- tuneEventStartEnd(eventDt, df1)
 
 eventDt
+}
+
+# function to identify compound events given a series single events
+compoundEvents <- function(events,df1,thresh,ix_cpd0) {
+
+ne1 <- nrow(events)
+events$ix_cpd <- NA
+events$start_cpd <- events$start
+events$peak_cpd <- events$peak
+events$end_cpd <- events$end
+
+# first label all the single events that belong to compound events
+if (ne1>1) {
+kk <- ix_cpd0
+for (k1 in 1:(ne1-1)) 
+  if (as.integer(difftime(events$start[k1+1],events$end[k1],units="hours"))<=3) 
+    if (subset(df1,time==events$end[k1])$value > thresh) { 
+      if (!is.na(events$ix_cpd[k1])) {
+        events$ix_cpd[k1+1] <- events$ix_cpd[k1]
+      } else {
+        kk <- kk + 1; events$ix_cpd[k1:(k1+1)] <- kk
+      }}
+
+# then identify the start, peak, and end points of compound events
+if (kk>ix_cpd0) {
+  for (k1 in (ix_cpd0+1):kk) {
+    
+     ix1 <- which(!is.na(events$ix_cpd) & events$ix_cpd==k1)
+     events$start_cpd[ix1] <- events$start[min(ix1)]
+     events$end_cpd[ix1] <- events$end[max(ix1)]
+     ipeaks <- events$peak[ix1]
+     events$peak_cpd[ix1] <- ipeaks[which.max(df1$value[match(ipeaks,df1$time)])]
+
+}}
+}
+events
 }
 
 ############## processing starts here #############
@@ -114,9 +144,10 @@ chunks <- match(dates1, dates)
 nchunk <- length(chunks)+1
 
 # loop through chunks to identy peaks for each chunk and then put them back together
-dataAll <- data.table()
-eventsAll <- data.table()
+dataAll <- data.table::data.table()
+eventsAll <- data.table::data.table()
 for (i1 in 1:nchunk) {
+
 
    # start index of current non-missing period
    if (i1==1) { j1 <- 1
@@ -139,7 +170,7 @@ for (i1 in 1:nchunk) {
    #fit <- with(data2,ksmooth(hour, value, kernel="normal",bandwidth=span))
    #data2$smooth <- fit$y
 
-   #local weighted regression
+   #local weighted regression smoothing
    span <- nwinSpan/nrow(data2)
    fit <- loess(value ~ hour, degree=1,span = span, data=data2)
    data2$smooth <- fit$fitted
@@ -217,72 +248,27 @@ for (i1 in 1:nchunk) {
       if (t1>maxRecessionDuration) events3$end[k1] <- events3$peak[k1]+maxRecessionDuration*3600
   }
 
-   # final adjustments to start and end points
-   events3 <- tuneEventStartEnd(events3,data2)
+  # final adjustments to start and end points
+  events3 <- tuneEventStartEnd(events3,data2)
 
-   #print(paste0(i1," ", nrow(events1)," ",nrow(events2)," ",nrow(events3)))
+  # identify compound events
+  ix_cpd0 <- 0
+  if (nrow(eventsAll)>=1) ix_cpd0 <- max(eventsAll$ix_cpd,na.rm=T)
+  if (is.infinite(ix_cpd0)) ix_cpd0 <- 0
+  events3 <- compoundEvents(events3, data2, thresh2,ix_cpd0)
 
-   # put them back together
-   data2$hour <- NULL
-   dataAll <- rbind(dataAll, data2)
-   eventsAll <- rbind(eventsAll, events3)
+  # put them back together
+  data2$hour <- NULL
+  dataAll <- rbind(dataAll, data2)
+  eventsAll <- rbind(eventsAll, events3)
 }
 
-outfile <- paste0("events/events_",tag,".Rdata")
-if (!dir.exists(dirname(outfile))) dir.create(dirname(outfile),recursive=TRUE)
-save(eventsAll,file=outfile)
-
-if (plot) {
-
-# add in those chunks that have no peaks 
+# add in those chunks that have no peaks
 data1 <- subset(data, ! time %in% dataAll$time)
 data1$smooth <- NA
 dataAll <- rbind(dataAll, data1)
-dataAll <- dataAll[order(time),] 
+dataAll <- dataAll[order(time),]
 
-#plot hydrographs and peaks (in half-year chunks)
-years <- as.integer(unique(format(dataAll$time,"%Y"))) 
-kk <- 0
-for (y1 in years) {
-for (k1 in 1:2) { 
-  if (k1==1) {
-    dates <- seq(as.POSIXct(paste0(y1-1,"1001"),format="%Y%m%d"),
-                 as.POSIXct(paste0(y1,"0401"),format="%Y%m%d"),by="hour")          
-  } else {
-    dates <- seq(as.POSIXct(paste0(y1,"0401"),format="%Y%m%d"),
-                 as.POSIXct(paste0(y1,"1001"),format="%Y%m%d"),by="hour")
-  }
-  data2 <- subset(dataAll, time %in% dates)
-  #if (sum(peaksAll$time %in% data2$time)==0) next
-  if (sum(eventsAll$peak %in% data2$time)==0) next
- 
-  # fill in missing times with NaN
-  dates1 <- dates[!dates %in% data2$time]
-  if (length(dates1)>0) {
-  data2 <- rbind(data2,data.frame(time=dates1, value=NA, smooth=NA))
-  data2 <- data2[order(time),]
-  }
- 
-  peaks <- subset(data2, time %in% eventsAll$peak)
-  starts <- subset(data2, time %in% eventsAll$start)
-  ends <- subset(data2, time %in% eventsAll$end)
+list(eventsAll,dataAll)
 
-  kk <- kk + 1
-  gg1 <- ggplot(data=data2,aes(time,value)) +
-      geom_line(color="darkgrey") +
-      geom_line(aes(time,smooth),color="black",size=0.4)+
-      geom_point(data=peaks,aes(time,value),color="red",shape=2,size=1) +
-      geom_point(data=starts,aes(time,value),color="blue",shape=8,size=1) +
-      geom_point(data=ends,aes(time,value),color="green",shape=1,size=1) +
-      geom_hline(yintercept=thresh1,linetype="dashed",color="black",size=0.5) +
-      theme(text=element_text(size=14),plot.title = element_text(hjust = 0.5)) +
-      labs(x="",y="streamflow (cms)", title=paste0(gage,", ",paste(format(range(dates),"%Y-%m-%d"),collapse=" to ")))
-
-  f1 <- paste0("figs/",tag,"_",nwinSpan,"/event_peak_",tag,"_",kk,".png")
-  if (!dir.exists(dirname(f1))) dir.create(dirname(f1),recursive=TRUE)
-  ggsave(filename=f1,plot=gg1,units="in",width=12.5,height=3.5,dpi=300)
-
-}}}
-
-eventsAll
 }
