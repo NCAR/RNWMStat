@@ -55,12 +55,13 @@ RNWM_Stats<-function(dataFrame,WS_area,bf_method='Lyne-Nathan',qlimit=0,cor_use=
     mod_dd$mod <-mod
 
     mod_dd<-na.omit(mod_dd)
-    mod_evdf<-eventIdentification(mod_dd,tag='aaa',nwinSpan=36,plot=FALSE,
+
+    mod_evdf<-eventIdentification(mod_dd,nwinSpan=36,
                             probPeak=0.9,probLowflow=0.5,probRange=0.3,
                             minEventDuration=6,maxRiseDuration=120,maxRecessionDuration=240,
                             nwinShift=12,minInterval=6,minLengthData=6)
 
-    mod_total_events     <- nrow(mod_evdf)
+    mod_total_events     <- length(mod_evdf[[1]]$start)
 
     #------------------------------------#
     # Lag Time
@@ -115,18 +116,28 @@ RNWM_Stats<-function(dataFrame,WS_area,bf_method='Lyne-Nathan',qlimit=0,cor_use=
     obs_dd$Obs <-obs
 
     obs_dd<-na.omit(obs_dd)
-    obs_evdf<-eventIdentification(obs_dd,tag='aaa',nwinSpan=36,plot=FALSE,
+    obs_evdf<-eventIdentification(obs_dd,nwinSpan=36,
                                   probPeak=0.9,probLowflow=0.5,probRange=0.3,
                                   minEventDuration=6,maxRiseDuration=120,maxRecessionDuration=240,
                                   nwinShift=12,minInterval=6,minLengthData=6)
 
-    obs_total_events     <- nrow(obs_evdf)
+    obs_total_events     <- length(obs_evdf[[1]]$start)
 
     #------------------------------------#
     # Event Matching
     #------------------------------------#
+    start <- obs_evdf[[1]]$start
+    obs_events<-as.data.frame(start)
+    obs_events$peak  <- obs_evdf[[1]]$peak
+    obs_events$end   <- obs_evdf[[1]]$end
 
-    event_stats <- match_events_obs_mod(obs_evdf,mod_evdf,dataFrame)
+    start <- mod_evdf[[1]]$start
+    mod_events<-as.data.frame(start)
+    mod_events$start <- mod_evdf[[1]]$start
+    mod_events$peak  <- mod_evdf[[1]]$peak
+    mod_events$end   <- mod_evdf[[1]]$end
+
+    event_stats <- match_events_obs_mod(obs_events,mod_events,dataFrame)
 
     #------------------------------------#
     # Lag Time

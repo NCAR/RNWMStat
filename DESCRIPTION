@@ -15,5 +15,5 @@ Imports:
     plyr(>= 1.0.0),
     pspline(>= 1.0-18),
     ggplot2(>= 3.3.1),
-    data.table(>= 1.12.8),
+    data.table(>= 1.12.6),
    
