@@ -222,10 +222,10 @@ RNWM_Stats<-function(dataFrame,WS_area,bf_method='Lyne-Nathan',qlimit=0,cor_use=
   Stat_obj$Mod_QuickFlow    <-mod_BF$qft
   Stat_obj$Mod_BaseFlowIndex<-mod_BFI
   Stat_obj$Mod_nStormEvents <-mod_nev$nEvents
-  Stat_obj$Mod_Fdc          <-obs_Fdc
-  Stat_obj$Mod_flowSpline   <-obs_flowSpline
-  Stat_obj$Mod_Q10.50       <-obs_Q10.50
-  Stat_obj$Mod_slopeFDC     <-obs_slopeFDC
+  Stat_obj$Mod_Fdc          <-mod_Fdc
+  Stat_obj$Mod_flowSpline   <-mod_flowSpline
+  Stat_obj$Mod_Q10.50       <-mod_Q10.50
+  Stat_obj$Mod_slopeFDC     <-mod_slopeFDC
 
   Stat_obj$RMSE  <-RMSE
   Stat_obj$PBIAS <-PBIAS
