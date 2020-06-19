@@ -4,6 +4,9 @@ Title: National Water Model Performance Evaluations Statistics
 Version: 0.1.0
 Author: Prasanth Valayamkunnath
 Maintainer: Prasanth Valayamkunnath <prasanth@ucar.edu>
+Contributers: Yuqiong Liu <yuqiong.liu@noaa.gov>
+              Rachel McDaniel <rachel.mcdaniel@noaa.gov>
+              Michael Barlage <barlage@ucar.edu> 
 Description: A community-contributed R package for evaluating the National Water Model performance in simulating streamflow.
 License: GPL-2
 Encoding: UTF-8
