@@ -25,3 +25,6 @@ Bugs are to be reported
 solve bugs and fixes into the code, please continue reading about
 developing.
 
+# Cite as
+Prasanth Valayamkunnath, Yuqiong Liu, Rachel McDaniel, Michael Barlage. (2020). RNWMStat: Release V.0.1 (Version V.0.1). Zenodo. http://doi.org/10.5281/zenodo.3903720
+
