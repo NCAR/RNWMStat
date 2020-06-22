@@ -26,5 +26,5 @@ solve bugs and fixes into the code, please continue reading about
 developing.
 
 # Cite as
-Prasanth Valayamkunnath, Yuqiong Liu, Rachel McDaniel, Michael Barlage. (2020). RNWMStat: Release V.0.1 (Version V.0.1). Zenodo. http://doi.org/10.5281/zenodo.3903720
+Prasanth Valayamkunnath, Yuqiong Liu, Rachel McDaniel, Michael Barlage. (2020). RNWMStat:A community-contributed R package for evaluating the National Water Model performance in simulating streamflow. Release V.0.1 (Version V.0.1). Zenodo. http://doi.org/10.5281/zenodo.3903720
 
