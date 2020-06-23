@@ -18,7 +18,7 @@ RNWM_Stats<-function(dataFrame,WS_area,bf_method='Lyne-Nathan',qlimit=0,cor_use=
     mod_BF<-BaseFlowSeparation(dataFrame$mod,
                                        bf_method=bf_method,
                                        k=0.93,
-                                       c=quantile(streamflow,probs = 0.25, na.rm=T),
+                                       c=quantile(dataFrame$mod,probs = 0.25, na.rm=T),
                                        filter_parameter=0.925,
                                        passes=1)
 
@@ -79,7 +79,7 @@ RNWM_Stats<-function(dataFrame,WS_area,bf_method='Lyne-Nathan',qlimit=0,cor_use=
     obs_BF<-BaseFlowSeparation(dataFrame$obs,
                                        bf_method=bf_method,
                                        k=0.93,
-                                       c=quantile(streamflow,probs = 0.25, na.rm=T),
+                                       c=quantile(dataFrame$obs,probs = 0.25, na.rm=T),
                                        filter_parameter=0.925,
                                        passes=1)
 
