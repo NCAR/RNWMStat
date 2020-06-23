@@ -57,7 +57,7 @@ RNWM_Stats<-function(dataFrame,WS_area,bf_method='Lyne-Nathan',qlimit=0,cor_use=
     mod_dd<-na.omit(mod_dd)
 
     mod_evdf<-eventIdentification(mod_dd,nwinSpan=36,
-                            probPeak=0.9,probLowflow=0.5,probRange=0.3,
+                            threshPeak=0.9,threshLowflow=0.5,threshFlowRange=0.3,
                             minEventDuration=6,maxRiseDuration=120,maxRecessionDuration=240,
                             nwinShift=12,minInterval=6,minLengthData=6)
 
@@ -117,7 +117,7 @@ RNWM_Stats<-function(dataFrame,WS_area,bf_method='Lyne-Nathan',qlimit=0,cor_use=
 
     obs_dd<-na.omit(obs_dd)
     obs_evdf<-eventIdentification(obs_dd,nwinSpan=36,
-                                  probPeak=0.9,probLowflow=0.5,probRange=0.3,
+                                  threshPeak=0.9,threshLowflow=0.5,threshFlowRange=0.3,
                                   minEventDuration=6,maxRiseDuration=120,maxRecessionDuration=240,
                                   nwinShift=12,minInterval=6,minLengthData=6)
 
