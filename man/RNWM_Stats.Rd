@@ -2,7 +2,7 @@
 \alias{RNWM_Stats}
 \title{RNWM_Stats (Estimate all the model evaluation statistics)}
 \usage{
-RNWM_Stats(dataFrame,bf_method='Eckhardt',qlimit=0,cor_method='pearson',cor_use='everything',na.rm=T)
+RNWM_Stats(dataFrame,bf_method='Lyne-Nathan',qlimit=0,cor_method='pearson',cor_use='everything',na.rm=T)
 }
 \description{
 Master function to estimate all the model evaluation statistics in 'RNWMStat' package. User should supply a dataframe of observation and model streamflow. Use column names 'mod' for model and 'obs' for observation.
@@ -11,7 +11,7 @@ Master function to estimate all the model evaluation statistics in 'RNWMStat' pa
 
 dataFrame<-data.frame(mod,obs)
 
-nwm_validation_stats<-RNWM_Stats(dataFrame,bf_method='Eckhardt',qlimit=0,cor_method='pearson',cor_use='everything',na.rm=T)
+nwm_validation_stats<-RNWM_Stats(dataFrame,bf_method='Lyne-Nathan',qlimit=0,cor_method='pearson',cor_use='everything',na.rm=T)
 
 
 }
