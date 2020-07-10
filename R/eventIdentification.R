@@ -25,8 +25,8 @@ eventIdentification <- function(data,nwinSpan=36,threshold_prob=TRUE,
 # maxPeakDistCompound: maximum distance between adjacent peaks that can be
 #       considered combined into compound events
 # threshold_prob: logical varible to indicate whether the three threhold 
-#       parametes (threshPeak, threshLowflow, threshFlowRange) are probablistic
-#       or not
+#       parametes (threshPeak, threshLowflow, threshFlowRange) are climatological
+#       probabilities or the actual values in units of streamflow data 
 # threshPeak: threshold for event peaks; peaks below threshold are 
 #       disgarded
 # threshLowflow: threshold for low flows, used to determine event 
@@ -36,7 +36,7 @@ eventIdentification <- function(data,nwinSpan=36,threshold_prob=TRUE,
 #       Events with flow ranges below this threshold are discarded
 # minLengthData: mininum length of record to perform event separation (hours)
 #       flow time series is first devided into chunks with no missing values;
-#       chunks too short are discarded 
+#       chunks too short are ignored for event detection 
 
 ######## outputs ##############
 # Output is a list of three data frames
@@ -164,7 +164,7 @@ thresh3 <- threshFlowRange
 
 # minor adjustments to peak threshold
 if (thresh1 <= max(data$value)*0.01) thresh1 <- max(data$value)*0.01
-if (thresh1 <= 1.0) thresh1 <- 1.0 #cms, convert to cfs if flow unit is cfs
+#if (thresh1 <= 1.0) thresh1 <- 1.0 #cms, convert to cfs if flow unit is cfs
 
 # fill short data gaps with spline interpolation
 dates <- seq(min(data$time),max(data$time), by="hour")
@@ -257,15 +257,19 @@ for (i1 in 1:nchunk) {
    events1 <- getEvents(peaks1$time, data2,thresh2)
 
    # remove events with a rising/recession limb that is too short (verticallly)
+   if (is.na(thresh3)) {
+     events2 <- events1
+   } else {
    iPeaks <- match(events1$peak,data2$time)
    iStarts <- match(events1$start,data2$time)
    iEnds <- match(events1$end,data2$time)
    ix1 <- NULL
    n1 <- length(iPeaks)
-   for (k1 in 1:n1)
+   for (k1 in 1:n1) 
      if (min(data2$value[iPeaks[k1]]-data2$value[iStarts[k1]],data2$value[iPeaks[k1]]-data2$value[iEnds[k1]]) >= thresh3) ix1 <- c(ix1,k1)
    if (length(ix1)==0) next
    events2 <- getEvents(events1$peak[ix1], data2,thresh2)
+   }
 
    # remove events that are too short in duration
    ix1 <- which(as.integer(difftime(events2$end,events2$start,units="hours")) >= minEventDuration)
@@ -303,6 +307,9 @@ dataAll <- rbind(dataAll, data1)
 dataAll <- dataAll[order(dataAll$time),]
 }
 
+if (nrow(eventsAll)==0) {
+  eventsCompound <- eventsAll
+} else {
 # compile event list that combines regular events with compound events
 eventsAll$start0 <- eventsAll$peak0 <- eventsAll$end0 <- eventsAll$end
 ix1 <- which(is.na(eventsAll$ix_cpd))
@@ -338,6 +345,7 @@ ix1 <- match(eventsCompound$end,dataAll$time)
 ix2 <- which(ix1 != nrow(dataAll) & !is.na(dataAll$value[ix1+1]))
 ix2 <- c(ix2, which(ix1==nrow(dataAll) & dataAll$value[ix1]<=thresh2))
 eventsCompound <- eventsCompound[ix2,]
+}
 
 list(eventsAll,eventsCompound,dataAll)
 
