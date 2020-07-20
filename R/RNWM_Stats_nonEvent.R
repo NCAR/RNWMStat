@@ -53,9 +53,11 @@ RNWM_Stats_nonEvent<-function(dataFrame,WS_area,bf_method='Lyne-Nathan',qlimit=0
     mod_RunoffCoeff <- RunoffCoefficient(dataFrame[,c("mod","PCP")],WS_area)
 
     #------------------------------------#
-    # runoff ratio by water year 
+    # runoff ratio by water year for model and obs 
     #------------------------------------#
-    mod_RunoffRatioWY <- RunoffRatio_byWY(dataFrame[,c("mod","PCP","Date")],WS_area)
+    tmp <- RunOffRatio(dataFrame,WS_area)
+    mod_RunoffRatioWY <- tmp$mod_runoff_ratio
+    obs_RunoffRatioWY <- tmp$obs_runoff_ratio
 
     #------------------------------------#
     # streamflow elasticity
@@ -103,11 +105,6 @@ RNWM_Stats_nonEvent<-function(dataFrame,WS_area,bf_method='Lyne-Nathan',qlimit=0
     # (mean) runoff coefficient 
     #------------------------------------#
     obs_RunoffCoeff <- RunoffCoefficient(dataFrame[,c("obs","PCP")],WS_area)
-
-    #------------------------------------#
-    # runoff ratio by water year 
-    #------------------------------------#
-    obs_RunoffRatioWY <- RunoffRatio_byWY(dataFrame[,c("obs","PCP","Date")],WS_area)
 
     #------------------------------------#
     # streamflow elasticity
