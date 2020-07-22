@@ -6,8 +6,6 @@ StreamflowElasticity <- function(dfRR, WS_area){
   require(data.table)
 
   dt1 <- data.table::as.data.table(dfRR)
-  print(is.data.table(dt1))
-
   names(dt1) <- c("Q","PCP","Date")
   dt1[, Qmm:=Q*3600/WS_area*1000]
   dt1[, year:=as.integer(format(Date,"%Y"))]
