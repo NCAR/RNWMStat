@@ -62,7 +62,7 @@ RNWM_Stats_nonEvent<-function(dataFrame,WS_area,bf_method='Lyne-Nathan',qlimit=0
     #------------------------------------#
     # streamflow elasticity
     #------------------------------------#
-    #mod_flowElast <- StreamflowElasticity(dataFrame[,c("mod","PCP","Date")],WS_area)
+    mod_flowElast <- StreamflowElasticity(dataFrame[,c("mod","PCP","Date")],WS_area)
 
   #------------------------------------#
   # Obs calculations
@@ -109,7 +109,7 @@ RNWM_Stats_nonEvent<-function(dataFrame,WS_area,bf_method='Lyne-Nathan',qlimit=0
     #------------------------------------#
     # streamflow elasticity
     #------------------------------------#
-    #obs_flowElast <- StreamflowElasticity(dataFrame[,c("obs","PCP","Date")],WS_area)
+    obs_flowElast <- StreamflowElasticity(dataFrame[,c("obs","PCP","Date")],WS_area)
 
   #------------------------------------#
   # Metrics requiring model and obs
@@ -211,7 +211,7 @@ RNWM_Stats_nonEvent<-function(dataFrame,WS_area,bf_method='Lyne-Nathan',qlimit=0
   Stat_obj$Obs_RunoffCoeff  <-obs_RunoffCoeff 
   Stat_obj$Obs_RunoffRatioWY <-obs_RunoffRatioWY 
   Stat_obj$Obs_LagTime      <-obs_LagTime
-  #Stat_obj$Obs_flowElast    <-obs_flowElast
+  Stat_obj$Obs_flowElast    <-obs_flowElast
 
   Stat_obj$Mod_BaseFlow     <-mod_BF$bt
   Stat_obj$Mod_QuickFlow    <-mod_BF$qft
@@ -223,7 +223,7 @@ RNWM_Stats_nonEvent<-function(dataFrame,WS_area,bf_method='Lyne-Nathan',qlimit=0
   Stat_obj$Mod_RunoffCoeff  <-mod_RunoffCoeff 
   Stat_obj$Mod_RunoffRatioWY <-mod_RunoffRatioWY 
   Stat_obj$Mod_LagTime      <-mod_LagTime
-  #Stat_obj$Mod_flowElast    <-mod_flowElast
+  Stat_obj$Mod_flowElast    <-mod_flowElast
 
   Stat_obj$RMSE  <-RMSE
   Stat_obj$PBIAS <-PBIAS
