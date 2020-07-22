@@ -60,9 +60,11 @@ RNWM_Stats_nonEvent<-function(dataFrame,WS_area,bf_method='Lyne-Nathan',qlimit=0
     obs_RunoffRatioWY <- tmp$obs_runoff_ratio
 
     #------------------------------------#
-    # streamflow elasticity
+    # streamflow elasticity for model and obs
     #------------------------------------#
-    mod_flowElast <- StreamflowElasticity(dataFrame[,c("mod","PCP","Date")],WS_area)
+    tmp <- StreamflowElasticity(dataFrame,WS_area)
+    mod_flowElast <- tmp$se_mod
+    obs_flowElast <- tmp$se_obs
 
   #------------------------------------#
   # Obs calculations
@@ -105,11 +107,6 @@ RNWM_Stats_nonEvent<-function(dataFrame,WS_area,bf_method='Lyne-Nathan',qlimit=0
     # (mean) runoff coefficient 
     #------------------------------------#
     obs_RunoffCoeff <- RunoffCoefficient(dataFrame[,c("obs","PCP")],WS_area)
-
-    #------------------------------------#
-    # streamflow elasticity
-    #------------------------------------#
-    obs_flowElast <- StreamflowElasticity(dataFrame[,c("obs","PCP","Date")],WS_area)
 
   #------------------------------------#
   # Metrics requiring model and obs
