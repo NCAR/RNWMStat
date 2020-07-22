@@ -3,6 +3,8 @@ StreamflowElasticity <- function(dfRR, WS_area){
   # dfRR: 1st column - streamflow; 2nd column - precip;
   # 3rd column: Date in POSIXct format
 
+  require(data.table)
+
   dt1 <- data.table::as.data.table(dfRR)
   names(dt1) <- c("Q","PCP","Date")
   dt1[, Qmm:=Q*3600/WS_area*1000]
