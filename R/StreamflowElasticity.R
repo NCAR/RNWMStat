@@ -3,24 +3,36 @@ StreamflowElasticity <- function(dfRR, WS_area){
   # dfRR: 1st column - streamflow; 2nd column - precip;
   # 3rd column: Date in POSIXct format
 
-  dt1 <- data.table::as.data.table(dfRR)
-  names(dt1) <- c("Q","PCP","Date")
-  dt1[, Qmm:=Q*3600/WS_area*1000]
-  dt1[, year:=as.integer(format(Date,"%Y"))]
-  dt1[, month:=as.integer(format(Date,"%m"))]
-  dt1[, water_year:=ifelse(month<=9,year,year+1)]
-  dt1 <- dt1[,c("Qmm","PCP","water_year"),with=F]
-  dt1[,sumQ:=sum(Qmm),by=water_year]
-  dt1[,sumP:=sum(PCP),by=water_year]
-  dt1 <- dt1[,c("sumQ","sumP","water_year"),with=F]
-  dt1 <- dt1[!duplicated(dt1),]
+  tmpdf<-dfRR
+  tmpdf$AreaM2<-WS_area
+  tmpdf$year  <-lubridate::year(tmpdf$Date)
+  tmpdf$month <-lubridate::month(tmpdf$Date)
+  tmpdf$Water_Year <- NA
+  tmpdf$mod_mm <-(tmpdf$mod*3600/WS_area)*1000 # to mm
+  tmpdf$obs_mm <-(tmpdf$obs*3600/WS_area)*1000 # to mm
+  for(i in 1:nrow(tmpdf)){
+    if(tmpdf$month[i]>9){
+      tmpdf$Water_Year[i]<-tmpdf$year[i]+1
+    }else{
+      tmpdf$Water_Year[i]<-tmpdf$year[i]
+    }
+  }
+  gbdf <- dplyr::group_by(tmpdf,Water_Year)
+  df1  <- dplyr::summarise(gbdf,sum_PCP  = sum(PCP,na.rm=T),
+                           sum_qmod = sum(mod_mm,na.rm=T),
+                           sum_qobs = sum(obs_mm,na.rm=T))
+  df1 <- dplyr::ungroup(df1)
+  dP <- diff(df1$sum_PCP)
+  mP <- mean(df1$sum_PCP)
+  dQm <- diff(df1$sum_qmod)
+  mQm <- mean(df1$sum_qmod)
+  dQo <- diff(df1$sum_qobs)
+  mQo <- mean(df1$sum_qobs)
 
-  dQ <- diff(dt1$sumQ)
-  dP <- diff(dt1$sumP)
-  mQ <- mean(dt1$sumQ)
-  mP <- mean(dt1$sumP)
-
-  se <- quantile(dQ/dP * (mQ/mP),probs=0.5) 
-  return(se)
+  se_mod <- quantile(dQm/dP * (mQm/mP),probs=0.5) 
+  se_obs <- quantile(dQo/dP * (mQo/mP),probs=0.5) 
+  l1 <- list(se_obs,se_mod)
+  names(l1) <- c("se_obs","se_mod")
+  return(l1)
 }   
 
