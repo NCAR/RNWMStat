@@ -104,6 +104,8 @@ RNWM_Stats_Event<-function(dataFrame,WS_area,snow=FALSE, groundwater=FALSE, slow
     obs_eventRR <- sum(obs1*3600/WS_area*1000)/pcp0
 
     c(volume_bias,mod_eventRR,obs_eventRR)})
+  
+  Stat_obj$eventsMatched <- eventsMatched
 
   Stat_obj$pBiasVolume <- dfMetric[[1]]
   Stat_obj$Mod_eventRR <- dfMetric[[2]]
