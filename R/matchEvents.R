@@ -29,7 +29,7 @@ no1 <- nrow(eventsCompoundObs)
 nm1 <- nrow(eventsCompoundMod)
 nm2 <- nrow(eventsAllMod) 
 
-if (no1==0 | (nm1+nm2)==0) { 
+if (no1==0) { 
   print("WARNING: no events to match")
   return(data.frame())
 }
@@ -40,7 +40,8 @@ dfMatch <- data.frame(ix_obs=1:no1,match=rep(NA,no1),
 for (k1 in 1:no1) {
 
   # first round: match observed compound events with model compound events
-  idx1 <- which(! (1:nm1) %in% dfMatch$ix_mod1[k1])
+  if (nm1>0) {
+  idx1 <- which(! (1:nm1) %in% dfMatch$ix_mod1)
   dist1 <- abs(as.integer(difftime(eventsCompoundObs$peak[k1],eventsCompoundMod$peak[idx1],units="hours")))
   mdist1 <- min(dist1)
   i1 <- idx1[which.min(dist1)]
@@ -48,7 +49,8 @@ for (k1 in 1:no1) {
      dfMatch$match[k1] <- 1
      dfMatch$ix_mod1[k1] <- i1
      next
-  } else {
+  }} else {
+    if (nm2>0) {
   # 2nd round: match remaining observed events with model single-peak events
     idx1 <- which(! (1:nm2) %in% dfMatch$ix_mod2[k1])
     dist1 <- abs(as.integer(difftime(eventsCompoundObs$peak[k1],eventsAllMod$peak[idx1],units="hours")))
@@ -58,7 +60,7 @@ for (k1 in 1:no1) {
        dfMatch$match[k1] <- 2
        dfMatch$ix_mod2[k1] <- i1
        next
-    } else {
+    }} else {
    # remaining observed events that are unmatched (i.e., missed by model)
        dfMatch$match[k1] <- 3
     }
