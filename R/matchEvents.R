@@ -1,103 +1,155 @@
-# Match observed (compound) events with model events
+# Match observed events with model events
+matchEvents <- function(data_obs,data_mod,events_obs, events_mod, threshold1,snowy=FALSE) {
 
-matchEvents <- function(data_mod, eventsAllMod, eventsCompoundMod,
-  eventsCompoundObs,maxDist=48) {
+win1 <- 5*24 # window to look for matching events
+if (snowy) win1 <- 3*30*24
 
-###### Inputs ##############
-# data_mod: data.frame for model streamflow, 1st column is time in POSIXct format,
-#       2nd column is the flow values
-# eventsAllMod: data frame listing all single-peak events for model
-#    streamflow (identified by eventIdentification.R)
-# eventsCompoundMod: data frame of compound events for model streamflow
-# eventsCompoundObs: data frame of compound events for observed streamflow
-# maxDist: window size (in hours) for identifying model events for
-#    a given observed event. Consider starting with 48 hours for
-#    non-snow basins and 7*24 (i.e., one week) for snow basins
+no1 <- nrow(events_obs)
+nm1 <- nrow(events_mod)
+events_obs <- events_obs[order(events_obs$start),]
+events_mod <- events_mod[order(events_mod$start),]
+events_mod1 <- data.table::data.table()
+match_mod <- rep(0,nm1)
+match_obs <- rep(0,no1)
 
-##### Output ##############
-# data frame with columns corresponding to the start, peak, and end times of
-# matched observed and model events. It has the same number of rows as 
-#   eventsCompoundObs
-#   1st - 3rd columns: start, peak and end times of observed events
-#   4th - 6th columns: start, peak and end times of model events 
-#   7th column: match category 
-#       1 = matched with eventsCompoundMod
-#       2 = matched with eventsAllMod
-#       3 = missed by model
+# loop through observed events to find matches in the model events
+for (i1 in 1:no1) {
 
-no1 <- nrow(eventsCompoundObs)
-nm1 <- nrow(eventsCompoundMod)
-nm2 <- nrow(eventsAllMod) 
-
-if (no1==0) { 
-  print("WARNING: no events to match")
-  return(data.frame())
-}
- 
-dfMatch <- data.frame(ix_obs=1:no1,match=rep(NA,no1),
-  ix_mod1=rep(NA,no1), ix_mod2=rep(NA,no1))
-
-for (k1 in 1:no1) {
-
-  # first round: match observed compound events with model compound events
-  if (nm1>0) {
-  idx1 <- which(! (1:nm1) %in% dfMatch$ix_mod1)
-  dist1 <- abs(as.integer(difftime(eventsCompoundObs$peak[k1],eventsCompoundMod$peak[idx1],units="hours")))
-  mdist1 <- min(dist1)
-  i1 <- idx1[which.min(dist1)]
-  if (mdist1 <= maxDist) {
-     dfMatch$match[k1] <- 1
-     dfMatch$ix_mod1[k1] <- i1
-     next
-  }} else {
-    if (nm2>0) {
-  # 2nd round: match remaining observed events with model single-peak events
-    idx1 <- which(! (1:nm2) %in% dfMatch$ix_mod2[k1])
-    dist1 <- abs(as.integer(difftime(eventsCompoundObs$peak[k1],eventsAllMod$peak[idx1],units="hours")))
-    mdist1 <- min(dist1)
-    i1 <- idx1[which.min(dist1)]
-    if (mdist1 <= maxDist) {
-       dfMatch$match[k1] <- 2
-       dfMatch$ix_mod2[k1] <- i1
-       next
-    }} else {
-   # remaining observed events that are unmatched (i.e., missed by model)
-       dfMatch$match[k1] <- 3
-    }
-  }
+dates1 <- seq(events_obs$start[i1],events_obs$end[i1],by="hour")
+dates2 <- seq(min(dates1)-win1*3600, max(dates1)+win1*3600,by="hour")
+ix0 <- which(events_mod$peak %in% dates2) 
+ix1 <- NULL
+for (i2 in ix0) {
+  dates <- seq(events_mod$start[i2],events_mod$end[i2],by="hour")
+  if (sum(dates %in% dates1)>=(min(length(dates1),length(dates))*0.2)) ix1 <- c(ix1,i2)
 }
 
-# assemble matched events of obs and mod
-peak_obs <- eventsCompoundObs$peak
-start_obs <- eventsCompoundObs$start
-end_obs <- eventsCompoundObs$end
+if (length(ix1)==0) { #no matching model events
+  d1 <- subset(data_mod, time %in% dates1)
+  peak_time <- d1$time[which.max(d1$value)]
+  peak_value <- max(d1$value)
+  if (peak_value >= threshold1) match_obs[i1] <- 1 
+  t1 <- data.table::data.table(start=events_obs$start[i1],
+    peak=peak_time, end=events_obs$end[i1])
+  t1[,nhour:=as.integer(difftime(end,start,units="hour"))+1]
+  t1[,nrise:=as.integer(difftime(peak,start,units="hour"))+1]
+  t1[,nrece:=as.integer(difftime(end,peak,units="hour"))]
+  events_mod1 <- rbind(events_mod1, t1)
+     
+} else if (length(ix1)==1) { #find one matching model event
+  events_mod1 <- rbind(events_mod1,events_mod[ix1,])
+  match_mod[ix1] <- 1
+  match_obs[i1] <- 1
 
-peak_mod <- peak_obs
-start_mod <- start_obs
-end_mod <- end_obs
+} else { 
+  # find mulitple model events within observed event period
+  # merge them into one compound mode event
+  e1 <- events_mod[ix1,]
+  peak_time <- e1$peak[which.max(data_mod$value[match(e1$peak,data_mod$time)])]
+  t1 <- data.table::data.table(start=min(e1$start),
+    peak=peak_time, end=max(e1$end))
+  t1[,nhour:=as.integer(difftime(end,start,units="hour"))+1]
+  t1[,nrise:=as.integer(difftime(peak,start,units="hour"))+1]
+  t1[,nrece:=as.integer(difftime(end,peak,units="hour"))]
+  events_mod1 <- rbind(events_mod1, t1)
+  match_mod[ix1] <- 1
+  match_obs[i1] <- 1
+  
+}
+} # loop events
 
-ix1 <- which(dfMatch$match==1)
-if (length(ix1)>0) {
-  peak_mod[ix1] <- eventsCompoundMod$peak[dfMatch$ix_mod1[ix1]]
-  start_mod[ix1] <- eventsCompoundMod$start[dfMatch$ix_mod1[ix1]]
-  end_mod[ix1] <- eventsCompoundMod$end[dfMatch$ix_mod1[ix1]]
-}
-ix1 <- which(dfMatch$match==2)
-if (length(ix1)>0) {
-  peak_mod[ix1] <- eventsAllMod$peak[dfMatch$ix_mod2[ix1]]
-  start_mod[ix1] <- eventsAllMod$start[dfMatch$ix_mod2[ix1]]
-  end_mod[ix1] <- eventsAllMod$end[dfMatch$ix_mod2[ix1]]
-}
-ix1 <- which(dfMatch$match==3)
-if (length(ix1)>0) {
-names(data_mod) <- c("time","value")
-for (k1 in ix1) {
-tmp <- subset(data_mod,time>=eventsCompoundObs$start[k1] & time<=eventsCompoundObs$end[k1])
-peak_mod[k1] <- tmp$time[which.max(tmp$value)]
+# make sure events are not overlapping each other
+# first model events
+n1 <- nrow(events_mod1)
+if (n1>1) {
+while(1) {
+ix0 <- which(duplicated(events_mod1))
+events <- events_mod1[ix0,]
+events <- events[!duplicated(events),]
+events1 <- rbind(events,events_mod1)
+jx0 <- which(duplicated(events1))
+jx0 <- jx0-nrow(events)
+
+ix1 <- which(events_mod1$end[1:(n1-1)] > events_mod1$start[2:n1])
+ix1 <- ix1[!ix1 %in% jx0]
+if (length(ix1)==0) break
+
+j1 <- ix1[1]; j2 <- ix1[1]+1
+if (events_mod1$start[j2]<=events_mod1$start[j1] & events_mod1$end[j2]>=events_mod1$end[j1]) {
+events_mod1[j1,] <- events_mod1[j2,]
+} else if (events_mod1$start[j1]<=events_mod1$start[j2] & events_mod1$end[j1]>=events_mod1$end[j2]) {
+events_mod1[j2,] <- events_mod1[j1,]
+} else {
+dates <- seq(events_mod1$start[ix1[1]+1],events_mod1$end[ix1[1]],by="hour")
+values <-  data_mod$value[match(dates,data_mod$time)]
+events_mod1$start[ix1[1]+1] <- events_mod1$start[ix1[1]+1] + (which.min(values)-1)*3600
+events_mod1$end[ix1[1]] <- events_mod1$start[ix1[1]+1]
 }}
+events_mod1[,nhour:=as.integer(difftime(end,start,units="hour"))+1]
+events_mod1[,nrise:=as.integer(difftime(peak,start,units="hour"))+1]
+events_mod1[,nrece:=as.integer(difftime(end,peak,units="hour"))]
 
-eventsMatched <- data.frame(start_obs,peak_obs,end_obs,start_mod,peak_mod,end_mod)
-eventsMatched$match <- dfMatch$match
-eventsMatched
+# then observed events
+events_obs1 <- events_obs
+while(1) {
+ix0 <- which(duplicated(events_obs1))
+events <- events_obs1[ix0,]
+events <- events[!duplicated(events),]
+events1 <- rbind(events,events_obs1)
+jx0 <- which(duplicated(events1))
+jx0 <- jx0-nrow(events)
 
+ix1 <- which(events_obs1$end[1:(n1-1)] > events_obs1$start[2:n1])
+ix1 <- ix1[!ix1 %in% jx0]
+if (length(ix1)==0) break
+j1 <- ix1[1]; j2 <- ix1[1]+1
+if (events_obs1$start[j2]<=events_obs1$start[j1] & events_obs1$end[j2]>=events_obs1$end[j1]) {
+events_obs1[j2,] <- events_obs1[j1,]
+} else if (events_obs1$start[j1]<=events_obs1$start[j2] & events_obs1$end[j1]>=events_obs1$end[j2]) {
+events_obs1[j1,] <- events_obs1[j2,]
+} else {
+dates <- seq(events_obs1$start[ix1[1]+1],events_obs1$end[ix1[1]],by="hour")
+values <-  data_obs$value[match(dates,data_obs$time)]
+events_obs1$start[ix1[1]+1] <- events_obs1$start[ix1[1]+1] + (which.min(values)-1)*3600
+events_obs1$end[ix1[1]] <- events_obs1$start[ix1[1]+1]
+}}
+events_obs1[,nhour:=as.integer(difftime(end,start,units="hour"))+1]
+events_obs1[,nrise:=as.integer(difftime(peak,start,units="hour"))+1]
+events_obs1[,nrece:=as.integer(difftime(end,peak,units="hour"))]
+
+
+# if duplicated model events, combine obs events
+while(1) {
+ix1 <- which(duplicated(events_mod1))
+if (length(ix1)==0) break
+
+events_obs1$end[ix1[1]-1] <- events_obs1$end[ix1[1]]
+peak0 <- data_obs$value[match(events_obs1$peak[ix1[1]-1],data_obs$time)]
+peak1 <- data_obs$value[match(events_obs1$peak[ix1[1]],data_obs$time)]
+if (peak0<peak1) events_obs1$peak[ix1[1]-1] <- events_obs1$peak[ix1[1]]
+
+events_obs1 <- events_obs1[-ix1[1],]
+events_mod1 <- events_mod1[-ix1[1],]
+}
+
+# if duplicated obs events, combine model events
+while(1) {
+ix1 <- which(duplicated(events_obs1))
+if (length(ix1)==0) break
+
+events_mod1$end[ix1[1]-1] <- events_mod1$end[ix1[1]]
+peak0 <- data_mod$value[match(events_mod1$peak[ix1[1]-1],data_mod$time)]
+peak1 <- data_mod$value[match(events_mod1$peak[ix1[1]],data_mod$time)]
+if (peak0<peak1) events_mod1$peak[ix1[1]-1] <- events_mod1$peak[ix1[1]]
+
+events_obs1 <- events_obs1[-ix1[1],]
+events_mod1 <- events_mod1[-ix1[1],]
+}
+
+}
+
+return(list(events_obs_match=events_obs1,
+            events_mod_match=events_mod1,
+            matched_mod=match_mod,
+            matched_obs=match_obs))
 }

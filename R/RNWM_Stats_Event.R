@@ -1,121 +1,69 @@
-RNWM_Stats_Event<-function(dataFrame,WS_area,snow=FALSE, groundwater=FALSE, slow=FALSE, lagTime=24, na.rm=T) {
+RNWM_Stats_Event<-function(dataFrame,WS_area,snow=FALSE, slow=FALSE, threshold,lagTime=24, na.rm=T) {
 
-  # Script that computes all metrics that are not event-based and collects all stats
-  # into a list.
+  # Computes all event-based metrics and collects stats into a list.
   # Make sure that the dataFrame contains date (Date, POSIXct format), model (mod),
   #  observations (obs), and precipitation amount (PCP)
 
   #Assume it doesn't have missing data for now
-  dataFrame<-na.omit(dataFrame)
-
-  # set up parameters  
-  nwinSpan1 <- 36
-  minEventDuration1 <- 12
-  maxRiseDuration1 <- 2*24
-  maxRecessionDuration1 <- 5*24
-  maxPeakDistCompound1 <- 5*24
-  maxDist1 <- 2*24
-
-  # adjust for seasonal snow
-  if (snow) {
-    nwinSpan1 <- 240
-    minEventDuration1 <- 36
-    maxRiseDuration1 <- 30*24
-    maxRecessionDuration1 <- 60*24
-    maxPeakDistCompound1 <- 15*24
-    maxDist1 <- 7*24
-  }
-
-  # adjust for groundwater
-  if (groundwater) {
-    nwinSpan1 <- 72
-    maxRiseDuration1 <- 30*24
-    maxRecessionDuration1 <- 30*24
-  }
-
-  # adjust for slow rising and recession limbs 
-  if (slow) {
-    maxRiseDuration1 <- 5*24
-    maxRecessionDuration1 <- 8*24
-  }
+  #dataFrame<-na.omit(dataFrame)
 
   # identify events for observed streamflow
-  listObs <- eventIdentification(dataFrame[,c("Date","obs")],
-      nwinSpan=nwinSpan1, 
-      minEventDuration=minEventDuration1, 
-      maxRiseDuration=maxRiseDuration1, 
-      maxRecessionDuration=maxRecessionDuration1,
-      maxPeakDistCompound=maxPeakDistCompound1)
-
+  listObs <- eventIdentification(dataFrame[,c("Date","obs")],snow,slow,threshold)
+  data_obs <- listObs[["dataAll"]]
+  events_obs0 <- listObs[["eventsAll"]]
+      
   # identify events for model streamflow
-  listMod <- eventIdentification(dataFrame[,c("Date","mod")],
-      nwinSpan=nwinSpan1,
-      minEventDuration=minEventDuration1,
-      maxRiseDuration=maxRiseDuration1,
-      maxRecessionDuration=maxRecessionDuration1,
-      maxPeakDistCompound=maxPeakDistCompound1)
+  listMod <- eventIdentification(dataFrame[,c("Date","mod")],snow,slow,threshold)
+  data_mod <- listMod[["dataAll"]]
+  events_mod0 <- listMod[["eventsAll"]]  
 
   # match observed events with model events
-  eventsMatched <- matchEvents(dataFrame[,c("Date","mod")],
-     listMod[[1]], listMod[[2]], listObs[[2]], maxDist=maxDist1)
+  matchResults <- matchEvents(data_obs,data_mod,events_obs0,events_mod0,threshold,snow)
+  events_obs <- matchResults[["events_obs_match"]]
+  events_mod <- matchResults[["events_mod_match"]]
+  ne1 <- nrow(events_obs)
 
   ##############  event metrics ################
 
-  #data from eventIdentification with short gaps filled
-  obsDf <- listObs[[3]] 
-  modDf <- listMod[[3]]
-
   Stat_obj <- list()
-  Stat_obj$Obs_nEvents <- nrow(listObs[[2]])
-  Stat_obj$Mod_nEvents <- nrow(listMod[[2]])
-  Stat_obj$Obs_peak <- obsDf$value[match(eventsMatched$peak_obs, obsDf$time)]
-  Stat_obj$Mod_peak <- modDf$value[match(eventsMatched$peak_mod, modDf$time)]
+  Stat_obj$matchResults <- matchResults
+  if (ne1>0) {
 
-  if (nrow(eventsMatched)==0) {
-    
-  Stat_obj$nHit <- 0
-  Stat_obj$nMiss <- Stat_obj$Obs_nEvents
-  Stat_obj$nFalseAlarm <- Stat_obj$Mod_nEvents
+  peak_obs <- data_obs$value[match(events_obs$peak,data_obs$time)]
+  peak_mod <- data_mod$value[match(events_mod$peak,data_mod$time)]
 
-  } else {
+  Stat_obj$nHit <- sum(peak_mod>=threshold)
+  Stat_obj$nMiss <- sum(peak_mod<threshold)
+  Stat_obj$hitRate <- Stat_obj$nHit/ne1*100
   
-  Stat_obj$nHit <- sum(eventsMatched$match %in% c(1,2))
-  Stat_obj$nMiss <- sum(eventsMatched$match==3)
-  Stat_obj$nFalseAlarm <- Stat_obj$Mod_nEvents - sum(eventsMatched$match==1)
-  Stat_obj$timingError <- as.integer(difftime(eventsMatched$peak_mod,eventsMatched$peak_obs,units="hour"))
-  Stat_obj$pBiasPeak <- (Stat_obj$Obs_peak - Stat_obj$Mod_peak)/Stat_obj$Obs_peak*100
+  # false alarms
+  ix1 <- data_mod$value[match(events_mod0$peak, data_mod$time)]>=threshold
+  events_mod0 <- events_mod0[ix1,]
+  dates1 <- NULL
+  for (i1 in 1:ne1) dates1 <- c(dates1,seq(events_mod$start[i1],events_mod$end[i1],by="hour"))
+  ix1 <- which(! events_mod0$peak %in% dates1)
+  Stat_obj$nFalseAlarm <- length(ix1)
+  Stat_obj$falseAlarmRate <- Stat_obj$nFalseAlarm/ne1*100
 
-  dfMetric <- plyr::ldply(1:nrow(eventsMatched), function(x) {
-    k1 <- match(eventsMatched$start_obs[x], obsDf$time)
-    k2 <- match(eventsMatched$end_obs[x], obsDf$time)
-    obs1 <- obsDf$value[k1:k2]
-    k1 <- match(eventsMatched$start_mod[x], modDf$time)
-    k2 <- match(eventsMatched$end_mod[x], modDf$time)
-    mod1 <- modDf$value[k1:k2]
+  Stat_obj$timingError <- as.integer(difftime(events_mod$peak,events_obs$peak,units="hour"))
+  Stat_obj$pBiasPeak <- (peak_mod-peak_obs)/peak_obs*100
 
-    volume_bias <- (sum(mod1)-sum(obs1))/sum(obs1)*100 
+  volume_mod <- sapply(1:ne1, function(x) sum(subset(data_mod,time %in% seq(events_mod$start[x],events_mod$end[x],by="hour"))$value))
+  volume_obs <- sapply(1:ne1, function(x) sum(subset(data_obs,time %in% seq(events_obs$start[x],events_obs$end[x],by="hour"))$value))
+  Stat_obj$pBiasVolume <- (volume_mod-volume_obs)/volume_obs*100
 
-    # total (event+antecedent) precipitation for computing runoff ratio
-    df0 <- subset(dataFrame,Date %in% seq(eventsMatched$start_obs[x]-lagTime*3600,eventsMatched$end_obs[x],by="hour"))
-    pcp0 <- sum(df0$PCP,na.rm=T)
-    
-    # event runoff ratio
-    mod_eventRR <- sum(mod1*3600/WS_area*1000)/pcp0
-    obs_eventRR <- sum(obs1*3600/WS_area*1000)/pcp0
+  # total (event+antecedent) precipitation for computing runoff ratio
+  pcp_mod <- sapply(1:ne1,function(x) sum(subset(dataFrame,Date %in% seq(events_mod$start[x]-lagTime*3600,events_mod$end[x],by="hour"))$PCP,na.rm=T))
+  pcp_obs <- sapply(1:ne1,function(x) sum(subset(dataFrame,Date %in% seq(events_obs$start[x]-lagTime*3600,events_obs$end[x],by="hour"))$PCP,na.rm=T))
+  Stat_obj$Mod_eventRR <- volume_mod*3600/WS_area*1000/pcp_mod
+  Stat_obj$Obs_eventRR <- volume_obs*3600/WS_area*1000/pcp_obs
 
-    c(volume_bias,mod_eventRR,obs_eventRR)})
-  
-  Stat_obj$eventsMatched <- eventsMatched
 
-  Stat_obj$pBiasVolume <- dfMetric[[1]]
-  Stat_obj$Mod_eventRR <- dfMetric[[2]]
-  Stat_obj$Obs_eventRR <- dfMetric[[3]]
-
-  Stat_obj$meanTimeErr <- mean(Stat_obj$timingError)
-  Stat_obj$meanPeakBias <- mean(Stat_obj$pBiasPeak)
-  Stat_obj$meanVolumeBias <- mean(Stat_obj$pBiasVolume)
-  Stat_obj$Mod_meanEventRR <- mean(Stat_obj$Mod_eventRR)
-  Stat_obj$Obs_meanEventRR <- mean(Stat_obj$Obs_eventRR)
+  Stat_obj$meanTimeErr <- mean(abs(Stat_obj$timingError))
+  Stat_obj$meanPeakBias <- mean(abs(Stat_obj$pBiasPeak))
+  Stat_obj$meanVolumeBias <- mean(abs(Stat_obj$pBiasVolume))
+  Stat_obj$Mod_meanEventRR <- mean(abs(Stat_obj$Mod_eventRR))
+  Stat_obj$Obs_meanEventRR <- mean(abs(Stat_obj$Obs_eventRR))
   }
 
   return(Stat_obj)
