@@ -181,7 +181,7 @@ for (i1 in 1:nchunk) {
    events1 <- data.frame()
    while(nrow(events0)>1) {
 
-   events0 <- events0[order(start),]
+   events0 <- events0[order(events0$start),]
 
    # 1. duration too short
    ix1 <- which(events0$nhour < minEventDuration)
@@ -249,7 +249,7 @@ for (i1 in 1:nchunk) {
    # add back those events that are not combined above 
    if (nrow(events1)>0) {
      events0 <- rbind(events0,events1)
-     events0 <- events0[order(start),]
+     events0 <- events0[order(events0$start),]
    } 
 
    if (nrow(events0)>1) {
@@ -273,7 +273,7 @@ for (i1 in 1:nchunk) {
    }
   
    # check if event start/peak/end are in order
-   events0 <- events0[order(start),]
+   events0 <- events0[order(events0$start),]
    ne1 <- nrow(events0)
    ix1 <- which((1:ne1) != order(events0$peak))
    if (length(ix1)>0) print("WARNING: events peak not in order!")
