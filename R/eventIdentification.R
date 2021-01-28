@@ -5,7 +5,7 @@ eventIdentification <- function(data, snowy=FALSE, slow=FALSE,threshPeak,thresho
 # input arguments
 # data: data.frame for streamflow, 1st column is time in POSIXct format,
 #       2nd column is the flow values
-# snowy: logical, whether the basin is domainated by SEASONAL snow
+# snowy: logical, whether the basin is dominated by SEASONAL snow
 # slow: logical, whether the basin is a slow-response (e.g.,groundwater-deriven) basin
 # threshPeak: threshold for event peaks; peaks below threshold are
 #       disgarded
@@ -13,8 +13,9 @@ eventIdentification <- function(data, snowy=FALSE, slow=FALSE,threshPeak,thresho
 #       is climatological probabilities or the actual values in units of
 #       streamflow data
 # nhourCompound: max distance (hours) for construct compound events
-#       set to a number >=0 if compound events are desired
-
+#       set to a number >=0 if compound events are desired. For example, 
+#       if nhourCompound=2, those events next to each other with a distance
+#       <=2 hours are combined into a compound event.
 
 # parameters 
 nwinSpan=1.5*24
@@ -52,7 +53,7 @@ chunks <- match(dates1, dates)
 nchunk <- length(chunks)+1
 
 # loop through chunks to identy peaks for each chunk and then put them back together
-dataAll <- eventsAll <- data.table()
+dataAll <- eventsAll <- data.table::data.table()
 for (i1 in 1:nchunk) {
 
    # start index of current non-missing period
@@ -84,7 +85,7 @@ for (i1 in 1:nchunk) {
    if (length(ipeak)==0) next
 
    # construct initial events
-   events0 <- data.table()
+   events0 <- data.table::data.table()
    for (i2 in 1:length(ipeak)) {
 
      t2 <- ipeak[i2]
@@ -117,7 +118,7 @@ for (i1 in 1:nchunk) {
      peak1 <- dt1$time[which.max(dt1$value)]
 
      # add to event data frame 
-     events0 <- rbind(events0,data.table(start=start1,peak=peak1,end=end1))
+     events0 <- rbind(events0,data.table::data.table(start=start1,peak=peak1,end=end1))
    }
    if (nrow(events0)==0) next
 
@@ -153,13 +154,13 @@ for (i1 in 1:nchunk) {
    # merge if duplicated start/peak/end
    events0 <- events0[!duplicated(events0),]
    for (tag1 in c("start","peak","end")) {
-     dt1 <- subset(as.data.table(table(events0[[tag1]])),N>1)
+     dt1 <- subset(data.table::as.data.table(table(events0[[tag1]])),N>1)
      dt1$V1 <- as.POSIXct(dt1$V1, format="%Y-%m-%d %H:%M:%S")
      if (nrow(dt1)>0) {
        for (t1 in dt1$V1) {
          events1 <- subset(events0, get(tag1) == t1)
          events0 <- subset(events0,! get(tag1) %in% t1)
-         tmp <- data.table(start=min(events1$start),
+         tmp <- data.table::data.table(start=min(events1$start),
            peak=events1$peak[which.max(data2$value[match(events1$peak,data2$time)])],
            end=max(events1$end))
          tmp[,nhour:=as.integer(difftime(end,start,units="hour"))+1]
