@@ -17,8 +17,6 @@ eventIdentification <- function(data, snowy=FALSE, slow=FALSE,threshPeak,thresho
 #       if nhourCompound=2, those events next to each other with a distance
 #       <=2 hours are combined into a compound event.
 
-library(data.table)
-  
 # parameters 
 nwinSpan=1.5*24
 nwinDecay=30*24
@@ -125,9 +123,9 @@ for (i1 in 1:nchunk) {
    if (nrow(events0)==0) next
 
    # compute event duration 
-   events0[,nhour:=as.integer(difftime(end,start,units="hour"))+1]
-   events0[,nrise:=as.integer(difftime(peak,start,units="hour"))+1]
-   events0[,nrece:=as.integer(difftime(end,peak,units="hour"))]
+   events0$nhour <- as.integer(difftime(events0$end,events0$start,units="hour"))+1
+   events0$nrise <- as.integer(difftime(events0$peak,events0$start,units="hour"))+1
+   events0$nrece <- as.integer(difftime(events0$end,events0$peak,units="hour"))
 
    # remove spurious events
    events0 <- subset(events0, nhour>=6)
@@ -165,9 +163,9 @@ for (i1 in 1:nchunk) {
          tmp <- data.table::data.table(start=min(events1$start),
            peak=events1$peak[which.max(data2$value[match(events1$peak,data2$time)])],
            end=max(events1$end))
-         tmp[,nhour:=as.integer(difftime(end,start,units="hour"))+1]
-         tmp[,nrise:=as.integer(difftime(peak,start,units="hour"))+1]
-         tmp[,nrece:=as.integer(difftime(end,peak,units="hour"))]
+         tmp$nhour <- as.integer(difftime(tmp$end,tmp$start,units="hour"))+1
+         tmp$nrise <- as.integer(difftime(tmp$peak,tmp$start,units="hour"))+1
+         tmp$nrece <- as.integer(difftime(tmp$end,tmp$peak,units="hour"))
 
          events0 <- rbind(events0,tmp) 
    }}}
@@ -243,9 +241,9 @@ for (i1 in 1:nchunk) {
    events0 <- events0[-i2,] # now remove the event
    
    # recompute event duration
-   events0[,nhour:=as.integer(difftime(end,start,units="hour"))+1]
-   events0[,nrise:=as.integer(difftime(peak,start,units="hour"))+1]
-   events0[,nrece:=as.integer(difftime(end,peak,units="hour"))]
+   events0$nhour <- as.integer(difftime(events0$end,events0$start,units="hour"))+1
+   events0$nrise <- as.integer(difftime(events0$peak,events0$start,units="hour"))+1
+   events0$nrece <- as.integer(difftime(events0$end,events0$peak,units="hour"))
    }
   
    # add back those events that are not combined above 
@@ -322,9 +320,9 @@ for (i1 in 1:nchunk) {
 
    }
 
-   events0[,nhour:=as.integer(difftime(end,start,units="hour"))+1]
-   events0[,nrise:=as.integer(difftime(peak,start,units="hour"))+1]
-   events0[,nrece:=as.integer(difftime(end,peak,units="hour"))]
+   events0$nhour <- as.integer(difftime(events0$end,events0$start,units="hour"))+1
+   events0$nrise <- as.integer(difftime(events0$peak,events0$start,units="hour"))+1
+   events0$nrece <- as.integer(difftime(events0$end,events0$peak,units="hour"))
 
    # remove events below threshold
    ix1 <- which(data2$value[match(events0$peak,data2$time)] >= thresh1)

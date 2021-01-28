@@ -1,8 +1,6 @@
 # Match observed events with model events
 matchEvents <- function(data_obs,data_mod,events_obs, events_mod, threshold1,snowy=FALSE) {
 
-library(data.table)
-
 win1 <- 5*24 # window to look for matching events
 if (snowy) win1 <- 3*30*24
 
@@ -33,9 +31,9 @@ if (length(ix1)==0) { #no matching model events
   if (peak_value >= threshold1) match_obs[i1] <- 1 
   t1 <- data.table::data.table(start=events_obs$start[i1],
     peak=peak_time, end=events_obs$end[i1])
-  t1[,nhour:=as.integer(difftime(end,start,units="hour"))+1]
-  t1[,nrise:=as.integer(difftime(peak,start,units="hour"))+1]
-  t1[,nrece:=as.integer(difftime(end,peak,units="hour"))]
+  t1$nhour <- as.integer(difftime(t1$end,t1$start,units="hour"))+1
+  t1$nrise <- as.integer(difftime(t1$peak,t1$start,units="hour"))+1
+  t1$nrece <- as.integer(difftime(t1$end,t1$peak,units="hour"))
   events_mod1 <- rbind(events_mod1, t1)
      
 } else if (length(ix1)==1) { #find one matching model event
@@ -50,9 +48,9 @@ if (length(ix1)==0) { #no matching model events
   peak_time <- e1$peak[which.max(data_mod$value[match(e1$peak,data_mod$time)])]
   t1 <- data.table::data.table(start=min(e1$start),
     peak=peak_time, end=max(e1$end))
-  t1[,nhour:=as.integer(difftime(end,start,units="hour"))+1]
-  t1[,nrise:=as.integer(difftime(peak,start,units="hour"))+1]
-  t1[,nrece:=as.integer(difftime(end,peak,units="hour"))]
+  t1$nhour <- as.integer(difftime(t1$end,t1$start,units="hour"))+1
+  t1$nrise <- as.integer(difftime(t1$peak,t1$start,units="hour"))+1
+  t1$nrece <- as.integer(difftime(t1$end,t1$peak,units="hour"))
   events_mod1 <- rbind(events_mod1, t1)
   match_mod[ix1] <- 1
   match_obs[i1] <- 1
@@ -87,9 +85,9 @@ values <-  data_mod$value[match(dates,data_mod$time)]
 events_mod1$start[ix1[1]+1] <- events_mod1$start[ix1[1]+1] + (which.min(values)-1)*3600
 events_mod1$end[ix1[1]] <- events_mod1$start[ix1[1]+1]
 }}
-events_mod1[,nhour:=as.integer(difftime(end,start,units="hour"))+1]
-events_mod1[,nrise:=as.integer(difftime(peak,start,units="hour"))+1]
-events_mod1[,nrece:=as.integer(difftime(end,peak,units="hour"))]
+events_mod1$nhour <- as.integer(difftime(events_mod1$end,events_mod1$start,units="hour"))+1
+events_mod1$nrise <- as.integer(difftime(events_mod1$peak,events_mod1$start,units="hour"))+1
+events_mod1$nrece <- as.integer(difftime(events_mod1$end,events_mod1$peak,units="hour"))
 
 # then observed events
 events_obs1 <- events_obs
@@ -115,9 +113,9 @@ values <-  data_obs$value[match(dates,data_obs$time)]
 events_obs1$start[ix1[1]+1] <- events_obs1$start[ix1[1]+1] + (which.min(values)-1)*3600
 events_obs1$end[ix1[1]] <- events_obs1$start[ix1[1]+1]
 }}
-events_obs1[,nhour:=as.integer(difftime(end,start,units="hour"))+1]
-events_obs1[,nrise:=as.integer(difftime(peak,start,units="hour"))+1]
-events_obs1[,nrece:=as.integer(difftime(end,peak,units="hour"))]
+events_obs1$nhour <- as.integer(difftime(events_obs1$end,events_obs1$start,units="hour"))+1
+events_obs1$nrise <- as.integer(difftime(events_obs1$peak,events_obs1$start,units="hour"))+1
+events_obs1$nrece <- as.integer(difftime(events_obs1$end,events_obs1$peak,units="hour"))
 
 
 # if duplicated model events, combine obs events
