@@ -17,6 +17,8 @@ eventIdentification <- function(data, snowy=FALSE, slow=FALSE,threshPeak,thresho
 #       if nhourCompound=2, those events next to each other with a distance
 #       <=2 hours are combined into a compound event.
 
+library(data.table)
+  
 # parameters 
 nwinSpan=1.5*24
 nwinDecay=30*24
