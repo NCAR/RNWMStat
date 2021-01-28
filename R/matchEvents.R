@@ -1,6 +1,8 @@
 # Match observed events with model events
 matchEvents <- function(data_obs,data_mod,events_obs, events_mod, threshold1,snowy=FALSE) {
 
+library(data.table)
+
 win1 <- 5*24 # window to look for matching events
 if (snowy) win1 <- 3*30*24
 
