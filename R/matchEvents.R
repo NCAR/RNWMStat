@@ -1,4 +1,10 @@
 # Match observed events with model events
+# Output is a list: 
+#     events_obs_match - observed events that are matched with model events
+#     events_mod_match - model events that are matched with obs events
+#     matched_mod - indication of whether the orginal model event is matched
+#     matched_obs - indication of whether the orginal obs event is matched
+
 matchEvents <- function(data_obs,data_mod,events_obs, events_mod, threshold1,snowy=FALSE) {
 
 win1 <- 5*24 # window to look for matching events
